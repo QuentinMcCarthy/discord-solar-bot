@@ -34,6 +34,8 @@ bot.on('message', function (user, userID, channelID, message, evt) {
         let args = message.substring(1).split(' ');
         let cmd = args[0];
 
+		let rtrn = "";
+
         // args = args.splice(1);
         switch(cmd) {
             case 'ping':
@@ -42,16 +44,16 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                     message: 'Pong!'
                 });
 
-				console.log("Returned pong to "+user+" ("+userID+")");
+				rtrn = "pong";
 
 	            break;
             case 'invite':
                 bot.sendMessage({
                     to: channelID,
-                    message: settings.invite
+                    message: bot.inviteurl+auth.perms
                 });
 
-				console.log("Returned invite url to "+user+" ("+userID+")");
+				rtrn = "invite url";
 
 	            break;
 			case 'commands':
@@ -60,7 +62,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 					message: 'Commands:\n```General:\nping, invite, commands, date\n\nDebug:\nchannel, mention```'
 				});
 
-				console.log("Returned commands to "+user+" ("+userID+")");
+				rtrn = "commandlist";
 
 				break;
 			case 'date':
@@ -71,7 +73,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 					message: 'The date is: '+baseDate
 				});
 
-				console.log("Returned date to "+user+" ("+userID+")");
+				rtrn = "date";
 
 				break;
 			case 'channel':
@@ -80,7 +82,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 					message: 'The ID for <#'+channelID+'> is: '+channelID
 				});
 
-				console.log("Returned channelID to "+user+" ("+userID+")");
+				rtrn = "channel ID";
 
 				break;
 			case 'mention':
@@ -89,7 +91,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 					message: '<@'+userID+'>'
 				});
 
-				console.log("Returned mention to "+user+" ("+userID+")");
+				rtrn = "mention";
 
 				break;
 			case 'say':
@@ -107,9 +109,14 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 					message: msg
 				});
 
-				console.log("Returned message to "+user+" ("+userID+")");
+				rtrn = "message";
 
 				break;
          }
+
+		 //console.log("Returned "+rtrn+" to "+user+" ("+userID+") in "+guild.id);
+		 console.log(bot);
+     } else {
+
      }
 });

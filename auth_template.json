@@ -1,3 +1,4 @@
 {
-	"token": "InviteTokenHere"
+	"token": "InviteTokenHere",
+	"perms": "PermCode"
 }
