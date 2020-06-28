@@ -1,6 +1,7 @@
 const Discord = require('discord.io');
 const logger = require('winston');
 const auth = require('./auth.json');
+const settings = require('./bot_data/settings.json');
 
 // Configure logger settings
 logger.remove(logger.transports.Console);
@@ -47,7 +48,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
             case 'invite':
                 bot.sendMessage({
                     to: channelID,
-                    message: 'https://discordapp.com/oauth2/authorize?&client_id=726760083857473597&scope=bot&permissions=68608'
+                    message: settings.invite
                 });
 
 				console.log("Returned invite url to "+user+" ("+userID+")");
