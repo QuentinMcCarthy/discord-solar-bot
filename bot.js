@@ -1,7 +1,7 @@
 const Discord = require('discord.io');
 const logger = require('winston');
+const fs = require('fs');
 const auth = require('./auth.json');
-const settings = require('./bot_data/settings.json');
 
 // Configure logger settings
 logger.remove(logger.transports.Console);
@@ -24,7 +24,21 @@ bot.on('ready', function (evt) {
     logger.info('Logged in as: ');
     logger.info(bot.username + ' - (' + bot.id + ')');
 
-	console.log("\n"+bot.username+" loaded and logged in\n");
+	console.log('\n');
+
+	// Check if each guild has a folder for data
+	for(var key in bot.servers){
+		if (fs.existsSync('./guild_data/'+key)) {
+			console.log(key+' data reported exists');
+		} else {
+			fs.mkdirSync('./guild_data/'+key);
+			fs.writeFileSync('./guild_data/'+key+'/settings.json', '{\n\t"prefix": "!"\n}');
+
+			console.log('Created guild dir for '+key+' and necessary files');
+		}
+	}
+
+	console.log('\n'+bot.username+' loaded and logged in\n');
 });
 
 // On message in the server
@@ -34,7 +48,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
         let args = message.substring(1).split(' ');
         let cmd = args[0];
 
-		let rtrn = "";
+		let rtrn = ';
 
         // args = args.splice(1);
         switch(cmd) {
@@ -44,78 +58,37 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                     message: 'Pong!'
                 });
 
-				rtrn = "pong";
+				rtrn = 'pong';
 
 	            break;
-            case 'invite':
-                bot.sendMessage({
-                    to: channelID,
-                    message: bot.inviteurl+auth.perms
-                });
-
-				rtrn = "invite url";
-
-	            break;
+            // case 'invite':
+            //     bot.sendMessage({
+            //         to: channelID,
+            //         message: bot.inviteurl+auth.perms
+            //     });
+			//
+			// 	rtrn = 'invite url';
+			//
+	        //     break;
 			case 'commands':
 				bot.sendMessage({
 					to: channelID,
-					message: 'Commands:\n```General:\nping, invite, commands, date\n\nDebug:\nchannel, mention```'
+					message: 'Commands:\n```General:\nping```'
 				});
 
-				rtrn = "commandlist";
+				rtrn = 'commandlist';
 
 				break;
-			case 'date':
-				var baseDate = new Date();
-
+			case 'settings':
 				bot.sendMessage({
 					to: channelID,
-					message: 'The date is: '+baseDate
+					message: '```Settings:\nPrefix: ```'
 				});
-
-				rtrn = "date";
-
-				break;
-			case 'channel':
-				bot.sendMessage({
-					to: channelID,
-					message: 'The ID for <#'+channelID+'> is: '+channelID
-				});
-
-				rtrn = "channel ID";
-
-				break;
-			case 'mention':
-				bot.sendMessage({
-					to: channelID,
-					message: '<@'+userID+'>'
-				});
-
-				rtrn = "mention";
-
-				break;
-			case 'say':
-				let msgA = message.split(' ');
-				msgA.splice(0, 1);
-
-				let msg = "";
-
-				for(var i = 0; i < msgA.length; i++){
-					msg += msgA[i]+" ";
-				}
-
-				bot.sendMessage({
-					to: channelID,
-					message: msg
-				});
-
-				rtrn = "message";
 
 				break;
          }
 
-		 //console.log("Returned "+rtrn+" to "+user+" ("+userID+") in "+guild.id);
-		 console.log(bot);
+		 console.log('Returned '+rtrn+' to '+user+' ('+userID+')');
      } else {
 
      }
