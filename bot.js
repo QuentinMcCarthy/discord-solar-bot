@@ -32,7 +32,7 @@ bot.on('ready', function (evt) {
 			console.log(key+' data reported exists');
 		} else {
 			fs.mkdirSync('./guild_data/'+key);
-			fs.writeFileSync('./guild_data/'+key+'/settings.json', '{\n\t"prefix": "!"\n}');
+			fs.writeFileSync('./guild_data/'+key+'/settings.json', '{"prefix": "!"}');
 
 			console.log('Created guild dir for '+key+' and necessary files');
 		}
@@ -43,14 +43,17 @@ bot.on('ready', function (evt) {
 
 // On message in the server
 bot.on('message', function (user, userID, channelID, message, evt) {
-    // Listen for messages starting with '!'
-    if (message.substring(0, 1) == '!') {
+	// Get the settings for the message's guild
+	let guildID = evt.d.guild_id;
+	let guildSettings = JSON.parse(fs.readFileSync('./guild_data/'+guildID+'/settings.json', 'utf-8'));
+
+	// Listen for messages that start with the prefix
+	if (message.substring(0, 1) == guildSettings.prefix) {
         let args = message.substring(1).split(' ');
         let cmd = args[0];
 
-		let rtrn = ';
+		let rtrn = '';
 
-        // args = args.splice(1);
         switch(cmd) {
             case 'ping':
                 bot.sendMessage({
@@ -73,17 +76,42 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 			case 'commands':
 				bot.sendMessage({
 					to: channelID,
-					message: 'Commands:\n```General:\nping```'
+					message: 'Commands:\n```General:\nping\n\nAdmin:\nsettings```'
 				});
 
 				rtrn = 'commandlist';
 
 				break;
 			case 'settings':
-				bot.sendMessage({
-					to: channelID,
-					message: '```Settings:\nPrefix: ```'
-				});
+				if (args[1] == 'prefix') {
+					if (args[2]) {
+						guildSettings.prefix = args[2];
+
+						// Write the settings back into the file
+						fs.writeFileSync('./guild_data/'+guildID+'/settings.json', JSON.stringify(guildSettings));
+
+						bot.sendMessage({
+							to: channelID,
+							message: 'New Prefix set as: '+args[2]
+						});
+
+						rtrn = 'prefixset';
+					} else {
+						bot.sendMessage({
+							to: channelID,
+							message: '```Setting: Prefix\nUsage: '+guildSettings.prefix+'settings prefix <newPrefix>\nThe prefix is the character(s) used at the start of a command to get the bot to listen.```'
+						});
+
+						rtrn = 'prefixhelp';
+					}
+				} else {
+					bot.sendMessage({
+						to: channelID,
+						message: '```General:\nprefix\n\n'+guildSettings.prefix+'settings <setting> to see more details```'
+					});
+
+					rtrn = 'settingslist';
+				}
 
 				break;
          }
