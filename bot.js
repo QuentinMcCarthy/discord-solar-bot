@@ -73,13 +73,29 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 			// 	rtrn = 'invite url';
 			//
 	        //     break;
-			case 'commands':
-				bot.sendMessage({
-					to: channelID,
-					message: 'Commands:\n```General:\nping\n\nAdmin:\nsettings```'
-				});
+			case 'help':
+				if (args[1] == 'ping') {
+					bot.sendMessage({
+						to: channelID,
+						message: 'Command: ping\nUsage: '+guildSettings.prefix+'ping\nPings the bot, used to check if the bot is running properly and to check the command delay'
+					});
 
-				rtrn = 'commandlist';
+					rtrn = 'pinghelp';
+				} else if (args[1] == 'settings') {
+					bot.sendMessage({
+						to: channelID,
+						message: 'Command: settings\nUsage: '+guildSettings.prefix+'settings [setting] [value]\nLists and sets settings for the bot'
+					});
+
+					rtrn = 'settingshelp';
+				} else {
+					bot.sendMessage({
+						to: channelID,
+						message: 'Commands:\n```General:\nping\n\nAdmin:\nsettings\n\n'+guildSettings.prefix+'help <command> to see more details```'
+					});
+
+					rtrn = 'helplist';
+				}
 
 				break;
 			case 'settings':
@@ -99,7 +115,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 					} else {
 						bot.sendMessage({
 							to: channelID,
-							message: '```Setting: Prefix\nUsage: '+guildSettings.prefix+'settings prefix <newPrefix>\nThe prefix is the character(s) used at the start of a command to get the bot to listen.```'
+							message: '```Setting: prefix\nUsage: '+guildSettings.prefix+'settings prefix <newPrefix>\nSet the prefix for bot commands```'
 						});
 
 						rtrn = 'prefixhelp';
@@ -114,6 +130,13 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 				}
 
 				break;
+			default:
+				bot.sendMessage({
+					to: channelID,
+					message: 'Unrecognized command. Use '+guildSettings.prefix+'help to see a list of commands and their usage'
+				});
+
+				rtrn = 'help';
          }
 
 		 console.log('Returned '+rtrn+' to '+user+' ('+userID+')');
