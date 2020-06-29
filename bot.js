@@ -64,8 +64,14 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 	// Guild ID for where the message came from
 	let guildID = evt.d.guild_id;
 
+	// Cancel code execution if it was executed by the bot itself
+	// This will prevent loops of the bot talking to itself
 	if (userID == bot.id) {
 		return;
+	}
+
+	if (botSettings.guildID) {
+
 	}
 
 	// Listen for messages that start with the prefix, or if the bot is mentioned
@@ -112,7 +118,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 				} else if (args[1] == 'creminder') {
 					bot.sendMessage({
 						to: channelID,
-						message: 'Command: creminder\nUsage: '+botSettings[guildID].prefix+'creminder [message] [delay]\nReminds users in a channel every set amount of messages of a specified message'
+						message: 'Command: creminder\nUsage: '+botSettings[guildID].prefix+'creminder [message] [delay] [on/off]\nReminds users in a channel every set amount of messages of a specified message. "'+botSettings[guildID].prefix+'creminder off" will disable the reminder'
 					});
 
 					rtrn = 'creminderhelp';
@@ -159,7 +165,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 
 				break;
 			case 'creminder':
-				if (args[1] != undefined && args[2] != undefined && typeof args[2] != 'number'){
+				if (args[1] != undefined && args[2] != undefined && typeof args[2] != 'number') {
 					let crmessage = args[1];
 					let crdelay = args[2];
 
@@ -184,7 +190,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 						crmessage = crmessage.replace(/"/g, '');
 						crdelay = crdelay.replace(/"/g, '');
 
-						botSettings[guildID].channels = JSON.parse('{"'+channelID+'":{"creminder":{"message":"'+crmessage+'","delay":"'+crdelay+'"}}}');
+						botSettings[guildID].channels = JSON.parse('{"'+channelID+'":{"creminder":{"message":"'+crmessage+'","delay":"'+crdelay+'","current":"'+crdelay+'"}}}');
 
 						fs.writeFileSync(settingsPath, JSON.stringify(botSettings));
 
@@ -201,6 +207,19 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 						});
 
 						rtrn = 'creminderfail';
+					}
+				} else if (args[1] == 'off') {
+					if (channelID in botSettings[guildID].channels) {
+						botSettings[guildID].channels = JSON.parse('{"'+channelID+'":{"creminder":{"message":"N/A","delay":"0","current":"0"}}}');
+
+						fs.writeFileSync(settingsPath, JSON.stringify(botSettings));
+
+						bot.sendMessage({
+							to: channelID,
+							message: 'Stopped reminding users in <#'+channelID+'>'
+						});
+
+						rtrn = 'creminderoff';
 					}
 				} else {
 					bot.sendMessage({
