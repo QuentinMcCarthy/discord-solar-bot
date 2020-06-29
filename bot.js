@@ -3,6 +3,9 @@ const logger = require('winston');
 const fs = require('fs');
 const auth = require('./auth.json');
 
+// File paths
+const settingsPath = './bot_data/settings.json';
+
 // Configure logger settings
 logger.remove(logger.transports.Console);
 
@@ -18,6 +21,9 @@ const bot = new Discord.Client({
    autorun: true
 });
 
+// Save settings into a variable from the file
+var botSettings = JSON.parse('{}');
+
 // Report initialization
 bot.on('ready', function (evt) {
     logger.info('Connected');
@@ -26,15 +32,27 @@ bot.on('ready', function (evt) {
 
 	console.log('\n');
 
-	// Check if each guild has a folder for data
-	for(var key in bot.servers){
-		if (fs.existsSync('./guild_data/'+key)) {
+	// Check if the settings file exists and load it up
+	if (fs.existsSync(settingsPath)) {
+		botSettings = JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
+
+		console.log('Settings file successfully loaded');
+	} else {
+		fs.writeFileSync(settingsPath, JSON.stringify(botSettings));
+
+		console.log('Settings file doesn\'t exist; new file saved');
+	}
+
+	// Ensure each guild the bot is in has an entry in settings
+	for (var key in bot.servers) {
+		if (key in botSettings) {
 			console.log(key+' data reported exists');
 		} else {
-			fs.mkdirSync('./guild_data/'+key);
-			fs.writeFileSync('./guild_data/'+key+'/settings.json', '{"prefix":"!","channels":{}}');
+			botSettings[key] = JSON.parse('{"prefix":"!","channels":{}}');
 
-			console.log('Created guild dir for '+key+' and necessary files');
+			fs.writeFileSync(settingsPath, JSON.stringify(botSettings));
+
+			console.log('Created guild entry for '+key);
 		}
 	}
 
@@ -43,13 +61,16 @@ bot.on('ready', function (evt) {
 
 // On message in the server
 bot.on('message', function (user, userID, channelID, message, evt) {
-	// Get the settings for the message's guild
+	// Guild ID for where the message came from
 	let guildID = evt.d.guild_id;
-	let guildSettings = JSON.parse(fs.readFileSync('./guild_data/'+guildID+'/settings.json', 'utf-8'));
 
-	// Listen for messages that start with the prefix
-	if (message.substring(0, 1) == guildSettings.prefix) {
-        let args = message.substring(1).split(' ');
+	if (userID == bot.id) {
+		return;
+	}
+
+	// Listen for messages that start with the prefix, or if the bot is mentioned
+	if (message.substring(0, botSettings[guildID].prefix.length) == botSettings[guildID].prefix) {
+        let args = message.substring(botSettings[guildID].prefix.length).split(' ');
         let cmd = args[0];
 
 		let rtrn = '';
@@ -77,28 +98,28 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 				if (args[1] == 'ping') {
 					bot.sendMessage({
 						to: channelID,
-						message: 'Command: ping\nUsage: '+guildSettings.prefix+'ping\nPings the bot, used to check if the bot is running properly and to check the command delay'
+						message: 'Command: ping\nUsage: '+botSettings[guildID].prefix+'ping\nPings the bot, used to check if the bot is running properly and to check the command delay'
 					});
 
 					rtrn = 'pinghelp';
 				} else if (args[1] == 'settings') {
 					bot.sendMessage({
 						to: channelID,
-						message: 'Command: settings\nUsage: '+guildSettings.prefix+'settings [setting] [value]\nLists and sets settings for the bot'
+						message: 'Command: settings\nUsage: '+botSettings[guildID].prefix+'settings [setting] [value]\nLists and sets settings for the bot'
 					});
 
 					rtrn = 'settingshelp';
 				} else if (args[1] == 'creminder') {
 					bot.sendMessage({
 						to: channelID,
-						message: 'Command: creminder\nUsage: '+guildSettings.prefix+'creminder [message] [delay]\nReminds users in a channel every set amount of messages of a specified message'
+						message: 'Command: creminder\nUsage: '+botSettings[guildID].prefix+'creminder [message] [delay]\nReminds users in a channel every set amount of messages of a specified message'
 					});
 
 					rtrn = 'creminderhelp';
 				} else {
 					bot.sendMessage({
 						to: channelID,
-						message: 'Commands:\n```General:\nping\n\nAdmin:\nsettings, creminder\n\n'+guildSettings.prefix+'help <command> to see more details```'
+						message: 'Commands:\n```General:\nping\n\nAdmin:\nsettings, creminder\n\n'+botSettings[guildID].prefix+'help <command> to see more details```'
 					});
 
 					rtrn = 'helplist';
@@ -108,10 +129,10 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 			case 'settings':
 				if (args[1] == 'prefix') {
 					if (args[2]) {
-						guildSettings.prefix = args[2];
+						botSettings[guildID].prefix = args[2];
 
 						// Write the settings back into the file
-						fs.writeFileSync('./guild_data/'+guildID+'/settings.json', JSON.stringify(guildSettings));
+						fs.writeFileSync(settingsPath, JSON.stringify(botSettings));
 
 						bot.sendMessage({
 							to: channelID,
@@ -122,7 +143,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 					} else {
 						bot.sendMessage({
 							to: channelID,
-							message: '```Setting: prefix\nUsage: '+guildSettings.prefix+'settings prefix <newPrefix>\nSet the prefix for bot commands```'
+							message: '```Setting: prefix\nUsage: '+botSettings[guildID].prefix+'settings prefix <newPrefix>\nSet the prefix for bot commands```'
 						});
 
 						rtrn = 'prefixhelp';
@@ -130,7 +151,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 				} else {
 					bot.sendMessage({
 						to: channelID,
-						message: '```General:\nprefix\nAdmin:\n\n'+guildSettings.prefix+'settings <setting> to see more details```'
+						message: '```General:\nprefix\nAdmin:\n\n'+botSettings[guildID].prefix+'settings <setting> to see more details```'
 					});
 
 					rtrn = 'settingslist';
@@ -139,44 +160,44 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 				break;
 			case 'creminder':
 				if (args[1] != undefined && args[2] != undefined && typeof args[2] != 'number'){
-					let rrmessage = args[1];
-					let rrdelay = args[2];
+					let crmessage = args[1];
+					let crdelay = args[2];
 
 					// Find the full string if there's a quotation
-					if (rrmessage.substring(0, 1) == '"' && rrmessage.substring(rrmessage.length-1) != '"') {
+					if (crmessage.substring(0, 1) == '"' && crmessage.substring(crmessage.length-1) != '"') {
 						for (var i = 2; i < args.length; i++) {
 							if (args[i].substring(args[i].length-1) == '"') {
-								rrmessage += ' '+args[i];
-								rrdelay = args[i+1];
+								crmessage += ' '+args[i];
+								crdelay = args[i+1];
 
 								break;
 							} else {
-								rrmessage += ' '+args[i];
-								rrdelay = args[i+1];
+								crmessage += ' '+args[i];
+								crdelay = args[i+1];
 							}
 						}
 					}
 
 					// Ensure that everything is correct
-					if (parseInt(rrdelay, 10) != 0 && rrdelay != undefined) {
+					if (parseInt(crdelay, 10) != 0 && crdelay != undefined) {
 						// Remove quotes
-						rrmessage = rrmessage.replace(/"/g, '');
-						rrdelay = rrdelay.replace(/"/g, '');
+						crmessage = crmessage.replace(/"/g, '');
+						crdelay = crdelay.replace(/"/g, '');
 
-						guildSettings.channels = JSON.parse('{"'+channelID+'":{"creminder":{"message":"'+rrmessage+'","delay":"'+rrdelay+'"}}}');
+						botSettings[guildID].channels = JSON.parse('{"'+channelID+'":{"creminder":{"message":"'+crmessage+'","delay":"'+crdelay+'"}}}');
 
-						fs.writeFileSync('./guild_data/'+guildID+'/settings.json', JSON.stringify(guildSettings));
+						fs.writeFileSync(settingsPath, JSON.stringify(botSettings));
 
 						bot.sendMessage({
 							to: channelID,
-							message: 'Will remind users in <#'+channelID+'> every '+rrdelay+' messages about "'+rrmessage+'"'
+							message: 'Will remind users in <#'+channelID+'> every '+crdelay+' messages about "'+crmessage+'"'
 						});
 
 						rtrn = 'creminderset';
 					} else {
 						bot.sendMessage({
 							to: channelID,
-							message: 'Usage: '+guildSettings.prefix+'creminder [message] [delay]'
+							message: 'Usage: '+botSettings[guildID].prefix+'creminder [message] [delay]'
 						});
 
 						rtrn = 'creminderfail';
@@ -184,7 +205,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 				} else {
 					bot.sendMessage({
 						to: channelID,
-						message: 'Usage: '+guildSettings.prefix+'creminder [message] [delay]'
+						message: 'Usage: '+botSettings[guildID].prefix+'creminder [message] [delay]'
 					});
 
 					rtrn = 'creminderex';
@@ -194,14 +215,21 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 			default:
 				bot.sendMessage({
 					to: channelID,
-					message: 'Unrecognized command. Use '+guildSettings.prefix+'help to see a list of commands and their usage'
+					message: 'Unrecognized command. Use '+botSettings[guildID].prefix+'help to see a list of commands and their usage'
 				});
 
 				rtrn = 'help';
-         }
+        }
 
-		 console.log('Returned '+rtrn+' to '+user+' ('+userID+')');
-     } else {
+		console.log('Returned '+rtrn+' to '+user+' ('+userID+')');
+    } else if (message.split(' ')[0] == '<@!'+bot.id+'>') {
+		if (message.split(' ')[1] == 'help') {
+			bot.sendMessage({
+				to: channelID,
+				message: botSettings[guildID].prefix+' is the prefix for the bot. To see the commands list use '+botSettings[guildID].prefix+'help'
+			});
 
-     }
+			console.log('Returned mentionhelp to '+user+' ('+userID+')');
+		}
+    }
 });
