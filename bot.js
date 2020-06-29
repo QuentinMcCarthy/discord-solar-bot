@@ -70,8 +70,26 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 		return;
 	}
 
-	if (botSettings.guildID) {
+	if (channelID in botSettings[guildID].channels) {
+		let channelSettings = botSettings[guildID].channels[channelID];
+		let current = channelSettings.creminder.current;
+		let delay = channelSettings.creminder.delay;
+		let message = channelSettings.creminder.message;
 
+		if (delay > 0 && message.length > 0) {
+			if (current - 1 <= 0) {
+				bot.sendMessage({
+					to: channelID,
+					message: message
+				});
+
+				botSettings[guildID].channels[channelID].creminder.current = delay;
+
+				console.log('Reminded users in '+channelID);
+			} else {
+				botSettings[guildID].channels[channelID].creminder.current = botSettings[guildID].channels[channelID].creminder.current - 1;
+			}
+		}
 	}
 
 	// Listen for messages that start with the prefix, or if the bot is mentioned
@@ -185,7 +203,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 					}
 
 					// Ensure that everything is correct
-					if (parseInt(crdelay, 10) != 0 && crdelay != undefined) {
+					if (parseInt(crdelay, 10) >= 1 && crdelay != undefined) {
 						// Remove quotes
 						crmessage = crmessage.replace(/"/g, '');
 						crdelay = crdelay.replace(/"/g, '');
