@@ -32,7 +32,7 @@ bot.on('ready', function (evt) {
 			console.log(key+' data reported exists');
 		} else {
 			fs.mkdirSync('./guild_data/'+key);
-			fs.writeFileSync('./guild_data/'+key+'/settings.json', '{"prefix": "!"}');
+			fs.writeFileSync('./guild_data/'+key+'/settings.json', '{"prefix":"!","channels":{}}');
 
 			console.log('Created guild dir for '+key+' and necessary files');
 		}
@@ -88,10 +88,17 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 					});
 
 					rtrn = 'settingshelp';
+				} else if (args[1] == 'creminder') {
+					bot.sendMessage({
+						to: channelID,
+						message: 'Command: creminder\nUsage: '+guildSettings.prefix+'creminder [message] [delay]\nReminds users in a channel every set amount of messages of a specified message'
+					});
+
+					rtrn = 'creminderhelp';
 				} else {
 					bot.sendMessage({
 						to: channelID,
-						message: 'Commands:\n```General:\nping\n\nAdmin:\nsettings\n\n'+guildSettings.prefix+'help <command> to see more details```'
+						message: 'Commands:\n```General:\nping\n\nAdmin:\nsettings, creminder\n\n'+guildSettings.prefix+'help <command> to see more details```'
 					});
 
 					rtrn = 'helplist';
@@ -123,10 +130,64 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 				} else {
 					bot.sendMessage({
 						to: channelID,
-						message: '```General:\nprefix\n\n'+guildSettings.prefix+'settings <setting> to see more details```'
+						message: '```General:\nprefix\nAdmin:\n\n'+guildSettings.prefix+'settings <setting> to see more details```'
 					});
 
 					rtrn = 'settingslist';
+				}
+
+				break;
+			case 'creminder':
+				if (args[1] != undefined && args[2] != undefined && typeof args[2] != 'number'){
+					let rrmessage = args[1];
+					let rrdelay = args[2];
+
+					// Find the full string if there's a quotation
+					if (rrmessage.substring(0, 1) == '"' && rrmessage.substring(rrmessage.length-1) != '"') {
+						for (var i = 2; i < args.length; i++) {
+							if (args[i].substring(args[i].length-1) == '"') {
+								rrmessage += ' '+args[i];
+								rrdelay = args[i+1];
+
+								break;
+							} else {
+								rrmessage += ' '+args[i];
+								rrdelay = args[i+1];
+							}
+						}
+					}
+
+					// Ensure that everything is correct
+					if (parseInt(rrdelay, 10) != 0 && rrdelay != undefined) {
+						// Remove quotes
+						rrmessage = rrmessage.replace(/"/g, '');
+						rrdelay = rrdelay.replace(/"/g, '');
+
+						guildSettings.channels = JSON.parse('{"'+channelID+'":{"creminder":{"message":"'+rrmessage+'","delay":"'+rrdelay+'"}}}');
+
+						fs.writeFileSync('./guild_data/'+guildID+'/settings.json', JSON.stringify(guildSettings));
+
+						bot.sendMessage({
+							to: channelID,
+							message: 'Will remind users in <#'+channelID+'> every '+rrdelay+' messages about "'+rrmessage+'"'
+						});
+
+						rtrn = 'creminderset';
+					} else {
+						bot.sendMessage({
+							to: channelID,
+							message: 'Usage: '+guildSettings.prefix+'creminder [message] [delay]'
+						});
+
+						rtrn = 'creminderfail';
+					}
+				} else {
+					bot.sendMessage({
+						to: channelID,
+						message: 'Usage: '+guildSettings.prefix+'creminder [message] [delay]'
+					});
+
+					rtrn = 'creminderex';
 				}
 
 				break;
