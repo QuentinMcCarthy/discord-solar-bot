@@ -48,7 +48,7 @@ bot.on('ready', function (evt) {
 		if (key in botSettings) {
 			console.log(key+' data reported exists');
 		} else {
-			botSettings[key] = JSON.parse('{"prefix":"!","channels":{}}');
+			botSettings[key] = JSON.parse('{"prefix":"!","channels":{},"filter":{}}');
 
 			fs.writeFileSync(settingsPath, JSON.stringify(botSettings));
 
@@ -136,7 +136,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 				} else if (args[1] == 'creminder') {
 					bot.sendMessage({
 						to: channelID,
-						message: 'Command: creminder\nUsage: '+botSettings[guildID].prefix+'creminder [message] [delay] [on/off]\nReminds users in a channel every set amount of messages of a specified message. "'+botSettings[guildID].prefix+'creminder off" will disable the reminder'
+						message: 'Command: creminder\nUsage: '+botSettings[guildID].prefix+'creminder <message/off> [delay]\nReminds users in a channel every set amount of messages of a specified message. "'+botSettings[guildID].prefix+'creminder off" will disable the reminder'
 					});
 
 					rtrn = 'creminderhelp';
@@ -172,10 +172,177 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 
 						rtrn = 'prefixhelp';
 					}
+				} else if (args[1] == 'filter') {
+					if (args[2] == 'list') {
+						if ('list' in botSettings[guildID].filter) {
+							let filterList = botSettings[guildID].filter.list;
+							let returnList = 'Filtered Words/Phrases:';
+
+							for (var i = 0; i < filterList.length; i++) {
+								returnList += '\n'+(i+1)+'. '+filterList[i];
+							}
+
+							bot.sendMessage({
+								to: channelID,
+								message: '```'+returnList+'```'
+							});
+
+							rtrn = 'filterlist';
+						} else {
+							bot.sendMessage({
+								to: channelID,
+								message: '```Filter Words/Phrases:```'
+							});
+
+							rtrn = 'filterlist';
+						}
+					} else if (args[2] == 'add') {
+						let phrase = args[3];
+
+						if (phrase) {
+							// Find the full string if there's a quotation
+							if (args[3].substring(0, 1) == '"' && args[3].substring(args[3].length-1) != '"') {
+								for (var i = 4; i < args.length; i++) {
+									if (args[i].substring(args[i].length-1) == '"') {
+										phrase += ' '+args[i];
+
+										break;
+									} else {
+										phrase += ' '+args[i];
+									}
+								}
+							}
+
+							// Remove quotes
+							phrase = phrase.replace(/"/g, '');
+
+							// Check if the list already exists. If not, create it.
+							if ('list' in botSettings[guildID].filter) {
+								botSettings[guildID].filter.list.push(phrase);
+							} else {
+								botSettings[guildID].filter = JSON.parse('{"list":["'+phrase+'"]}')
+							}
+
+							fs.writeFileSync(settingsPath, JSON.stringify(botSettings));
+
+							bot.sendMessage({
+								to: channelID,
+								message: 'Added "'+phrase+'" to filter list'
+							});
+
+							rtrn = 'filteradd';
+						} else {
+							bot.sendMessage({
+								to: channelID,
+								message: '```Setting: filter\nUsage: '+botSettings[guildID].prefix+'settings filter <list/add/remove/clear> [word/phrase]\nAdd/remove words from the filter list, or list all filter words, or clear the filter list to disable the filter.```'
+							});
+
+							rtrn = 'filteraddfail';
+						}
+					} else if (args[2] == 'remove') {
+						let term = args[3];
+
+						if (term) {
+							// Find the full string if there's a quotation
+							if (args[3].substring(0, 1) == '"' && args[3].substring(args[3].length-1) != '"') {
+								for (var i = 4; i < args.length; i++) {
+									if (args[i].substring(args[i].length-1) == '"') {
+										term += ' '+args[i];
+
+										break;
+									} else {
+										term += ' '+args[i];
+									}
+								}
+							}
+
+							// Remove quotes
+							term = term.replace(/"/g, '');
+
+							// Check if the list exists, if not, inform user
+							if ('list' in botSettings[guildID].filter) {
+								// Is the term a string or an number
+								if(parseInt(term, 10) > 0) {
+									// The given index will be higher than the actual index
+									term = parseInt(term, 10)-1;
+
+									// Remove the given index from the array
+									let removed = botSettings[guildID].filter.list.splice(term, 1);
+
+									bot.sendMessage({
+										to: channelID,
+										message: 'Removed '+removed+' from the filter list'
+									});
+
+									fs.writeFileSync(settingsPath, JSON.stringify(botSettings));
+
+									rtrn = 'filterremove';
+								} else {
+									let removed = '';
+									let filterList = botSettings[guildID].filter.list;
+
+									// Find and remove the entry from the array
+									for(var i = 0; i < filterList.length; i++){
+										if (filterList[i] == term) {
+											removed = filterList[i];
+
+											botSettings[guildID].filter.list.splice(i, 1);
+
+											break;
+										}
+									}
+
+									if (removed == '') {
+										bot.sendMessage({
+											to: channelID,
+											message: term+' was not found in the list'
+										});
+
+										rtrn = 'filterremovefail';
+									} else {
+										bot.sendMessage({
+											to: channelID,
+											message: 'Removed '+removed+' from the filter list'
+										});
+
+										fs.writeFileSync(settingsPath, JSON.stringify(botSettings));
+
+										rtrn = 'filterrremove';
+									}
+								}
+							} else {
+								bot.sendMessage({
+									to: channelID,
+									message: 'There are no words being filtered'
+								});
+
+								rtrn = 'filterremovefail';
+							}
+						}
+					} else if (args[2] == 'clear') {
+						// Set a new array
+						botSettings[guildID].filter.list = JSON.parse('[]');
+
+						fs.writeFileSync(settingsPath, JSON.stringify(botSettings));
+
+						bot.sendMessage({
+							to: channelID,
+							message: 'Filter list cleared'
+						});
+
+						rtrn = 'filterclear';
+					} else {
+						bot.sendMessage({
+							to: channelID,
+							message: '```Setting: filter\nUsage: '+botSettings[guildID].prefix+'settings filter <list/add/remove/clear> [word/phrase/id]\nAdd/remove words from the filter list, or list all filter words, or clear the filter list to disable the filter.```'
+						});
+
+						rtrn = 'filterhelp';
+					}
 				} else {
 					bot.sendMessage({
 						to: channelID,
-						message: '```General:\nprefix\nAdmin:\n\n'+botSettings[guildID].prefix+'settings <setting> to see more details```'
+						message: '```General:\nprefix\n\nAdmin:\nfilter\n\n'+botSettings[guildID].prefix+'settings <setting> to see more details```'
 					});
 
 					rtrn = 'settingslist';
