@@ -7,7 +7,6 @@ module.exports = {
 	usage: '[setting]',
 	execute(client, message, args) {
 		const guildID = message.guild.id;
-		const guildSettings = client.settings.get(guildID);
 		let rtrn = '';
 
 		if (args[0] == 'prefix') {
@@ -18,18 +17,17 @@ module.exports = {
 
 				rtrn = 'prefixset';
 			} else {
-				message.channel.send('```Setting: prefix\nUsage: '+guildSettings.prefix+'settings prefix <newPrefix>\nSet the prefix for bot commands```');
+				message.channel.send('```Setting: prefix\nUsage: '+client.settings.get(guildID, 'prefix')+'settings prefix <newPrefix>\nSet the prefix for bot commands```');
 
 				rtrn = 'prefixhelp';
 			}
 		} else if (args[0] == 'filter') {
 			if (args[1] == 'list') {
 				if (client.settings.has(guildID, 'filter.list')) {
-					let filterList = guildSettings.filter.list;
 					let returnList = 'Filtered Words/Phrases:';
 
-					for (var i = 0; i < filterList.length; i++) {
-						returnList += '\n'+(i+1)+'. '+filterList[i];
+					for (var i = 0; i < client.settings.get(guildID, 'filter.list').length; i++) {
+						returnList += '\n'+(i+1)+'. '+client.settings.get(guildID, 'filter.list')[i];
 					}
 
 					message.channel.send('```'+returnList+'```');
@@ -60,8 +58,6 @@ module.exports = {
 					// Remove quotes
 					phrase = phrase.replace(/"/g, '');
 
-					console.log(client.settings.has('channels'));
-
 					// Check if the list already exists. If not, create it.
 					if (client.settings.has(guildID, 'filter.list')) {
 						client.settings.push(guildID, phrase, 'filter.list')
@@ -70,13 +66,11 @@ module.exports = {
 						client.settings.set(guildID, [phrase], 'filter.list')
 					}
 
-					console.log(client.settings.get(guildID));
-
 					message.channel.send('Added "'+phrase+'" to filter list');
 
 					rtrn = 'filteradd';
 				} else {
-					message.channel.send('```Setting: filter\nUsage: '+guildSettings.prefix+'settings filter <list/add/remove/clear> [word/phrase]\nAdd/remove words from the filter list, or list all filter words, or clear the filter list to disable the filter.```');
+					message.channel.send('```Setting: filter\nUsage: '+client.settings.get(guildID, 'prefix')+'settings filter <list/add/remove/clear> [word/phrase]\nAdd/remove words from the filter list, or list all filter words, or clear the filter list to disable the filter.```');
 
 					rtrn = 'filteraddfail';
 				}
@@ -107,7 +101,6 @@ module.exports = {
 							// The given index will be higher than the actual index
 							term = parseInt(term, 10)-1;
 
-							// let tempList = guildSettings.filter.list;
 							let tempList = client.settings.get(guildID, 'filter.list');
 
 							// Remove the given index from the array
@@ -120,12 +113,11 @@ module.exports = {
 							rtrn = 'filterremove';
 						} else {
 							let removed = '';
-							let filterList = guildSettings.filter.list;
 
 							// Find and remove the entry from the array
-							for(var i = 0; i < filterList.length; i++){
-								if (filterList[i] == term) {
-									removed = filterList[i];
+							for(var i = 0; i < client.settings.get(guildID, 'filter.list').length; i++){
+								if (client.settings.get(guildID, 'filter.list')[i] == term) {
+									removed = client.settings.get(guildID, 'filter.list')[i];
 
 									client.settings.remove(guildID, removed, 'filter.list');
 
@@ -151,7 +143,7 @@ module.exports = {
 				}
 			} else if (args[1] == 'clear') {
 				// Set a new array
-				client.settings.set(guildID, [], '.filter.list');
+				client.settings.set(guildID, [], 'filter.list');
 
 				message.channel.send('Filter list cleared');
 
@@ -181,14 +173,16 @@ module.exports = {
 					client.settings.set(guildID, newResponse, 'filter.response');
 
 					message.channel.send('Filter response set as: "'+newResponse+'"');
+
+					rtrn = 'filterresponse';
 				}
 			} else {
-				message.channel.send('```Setting: filter\nUsage: '+guildSettings.prefix+'settings filter <list/add/remove/clear/response> [word/phrase/id]\nAdd/remove words from the filter list, or list all filter words, or clear the filter list to disable the filter. Response is customisable.```');
+				message.channel.send('```Setting: filter\nUsage: '+client.settings.get(guildID, 'prefix')+'settings filter <list/add/remove/clear/response> [word/phrase/id]\nAdd/remove words from the filter list, or list all filter words, or clear the filter list to disable the filter. Response is customisable.```');
 
 				rtrn = 'filterhelp';
 			}
 		} else {
-			message.channel.send('```Settings:\nprefix, filter\n\n'+guildSettings.prefix+'settings <setting> to see more details```');
+			message.channel.send('```Settings:\nprefix, filter\n\n'+client.settings.get(guildID, 'prefix')+'settings <setting> to see more details```');
 
 			rtrn = 'settingslist';
 		}

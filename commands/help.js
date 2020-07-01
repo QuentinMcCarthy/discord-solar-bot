@@ -6,14 +6,13 @@ module.exports = {
 	usage: '[command]',
 	cooldown: 1,
 	execute(client, message, args) {
-		const guildSettings = client.settings.get(message.guild.id);
 		const data = [];
 		const {commands} = client;
 
 		if (!args.length) {
 			data.push('```Commands:');
 			data.push(commands.map(command => command.name).join(', '));
-			data.push('\nUse '+guildSettings.prefix+'help <command> to see more details```');
+			data.push('\nUse '+client.settings.get(guildID, 'prefix')+'help <command> to see more details```');
 
 			console.log('Returned commandlist to '+message.author.username+' ('+message.author.id+')');
 
@@ -26,13 +25,13 @@ module.exports = {
 		if (!command) {
 			console.log('Returned nocmd to '+message.author.username+' ('+message.author.id+')');
 
-			return message.channel.send('Unrecognized command. Use '+guildSettings.prefix+'help to see a list of commands and their usage')
+			return message.channel.send('Unrecognized command. Use '+client.settings.get(guildID, 'prefix')+'help to see a list of commands and their usage')
 		}
 
 		data.push('Command: '+command.name);
 
 		if (command.usage) {
-			data.push('Usage: '+guildSettings.prefix+command.name+' '+command.usage);
+			data.push('Usage: '+client.settings.get(guildID, 'prefix')+command.name+' '+command.usage);
 		}
 		if (command.description) {
 			data.push(command.description);

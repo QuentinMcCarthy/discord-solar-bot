@@ -7,7 +7,6 @@ module.exports = {
 	cooldown: 2,
 	execute(client, message, args) {
 		const guildID = message.guild.id;
-		const guildSettings = client.settings.get(guildID);
 		var rtrn = '';
 
 		if (args[0] != undefined && args[1] != undefined && typeof args[1] != 'number') {
@@ -45,7 +44,7 @@ module.exports = {
 
 				rtrn = 'creminderset';
 			} else {
-				message.channel.send('Usage: '+guildSettings.prefix+'creminder [message] [delay]');
+				message.channel.send('Usage: '+client.settings.get(guildID, 'prefix')+'creminder [message] [delay]');
 
 				rtrn = 'creminderfail';
 			}
@@ -65,7 +64,7 @@ module.exports = {
 				rtrn = 'creminderfail'
 			}
 		} else {
-			message.channel.send('Usage: '+guildSettings.prefix+'creminder <message/off> [delay]');
+			message.channel.send('Usage: '+client.settings.get(guildID, 'prefix')+'creminder <message/off> [delay]');
 
 			rtrn = 'creminderex';
 		}

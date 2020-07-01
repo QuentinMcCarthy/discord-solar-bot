@@ -60,31 +60,24 @@ client.on('message', message => {
 	const channelID = message.channel.id;
 	const guildID = message.guild.id;
 	const userID = message.author.id;
-	const guildSettings = client.settings.ensure(guildID, defaultSettings);
-	const prefix = guildSettings.prefix;
 
-	if (channelID in guildSettings.channels) {
-		let channelSettings = guildSettings.channels[channelID];
-		let current = channelSettings.creminder.current;
-		let delay = channelSettings.creminder.delay;
-		let msg = channelSettings.creminder.message;
+	if (client.settings.has(guildID, 'channels.'+channelID)) {
+		if (client.settings.get(guildID, 'channels.'+channelID+'.creminder.delay') > 0 && message.content.length > 0) {
+			if (client.settings.get(guildID, 'channels.'+channelID+'.creminder.current') - 1 <= 0) {
+				message.channel.send(client.settings.get(guildID, 'channels.'+channelID+'.creminder.message'));
 
-		if (delay > 0 && message.content.length > 0) {
-			if (current - 1 <= 0) {
-				message.channel.send(msg);
-
-				client.settings.set(guildID, delay, 'channels.'+channelID+'.creminder.current');
+				client.settings.set(guildID, client.settings.get(guildID, 'channels.'+channelID+'.creminder.delay', 'channels.'+channelID+'.creminder.current'));
 
 				console.log('Reminded users in '+channelID);
 			} else {
-				client.settings.set(guildID, current-1, 'channels.'+channelID+'.creminder.current')
+				client.settings.set(guildID, client.settings.get(guildID, 'channels.'+channelID+'.creminder.current')-1, 'channels.'+channelID+'.creminder.current');
 			}
 		}
 	}
 
 	// Listen for messages that start with the prefix, or if the bot is mentioned
-	if (message.content.startsWith(prefix)) {
-		const args = message.content.slice(prefix.length).split(/ +/);
+	if (message.content.startsWith(client.settings.get(guildID, 'prefix'))) {
+		const args = message.content.slice(client.settings.get(guildID, 'prefix').length).split(/ +/);
 		const commandName = args.shift().toLowerCase();
 		let rtrn = '';
 
@@ -133,11 +126,11 @@ client.on('message', message => {
 	} else if (client.settings.has(guildID, 'filter.list')) {
 		let toFilter = message.content.toLowerCase();
 
-		for (var i = 0; i < guildSettings.filter.list.length; i++) {
-			if (toFilter.includes(guildSettings.filter.list[i])) {
+		for (var i = 0; i < client.settings.get(guildID, 'filter.list').length; i++) {
+			if (toFilter.includes(client.settings.get(guildID, 'filter.list')[i])) {
 				message.delete();
 
-				message.channel.send(guildSettings.filter.response);
+				message.channel.send(client.settings.get(guildID, 'filter.response'));
 			}
 		}
 	}
