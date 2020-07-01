@@ -1,37 +1,14 @@
-const Discord = require('discord.io');
-const logger = require('winston');
+const Discord = require('discord.js');
 const fs = require('fs');
-const auth = require('./auth.json');
-
-// File paths
+const client = new Discord.Client();
+const {token, perms} = require('./auth.json');
 const settingsPath = './bot_data/settings.json';
-
-// Configure logger settings
-logger.remove(logger.transports.Console);
-
-logger.add(new logger.transports.Console, {
-    colorize: true
-});
-
-logger.level = 'debug';
-
-// Initialize Discord Bot
-const bot = new Discord.Client({
-   token: auth.token,
-   autorun: true
-});
 
 // Save settings into a variable from the file
 var botSettings = JSON.parse('{}');
 
-// Report initialization
-bot.on('ready', function (evt) {
-    logger.info('Connected');
-    logger.info('Logged in as: ');
-    logger.info(bot.username + ' - (' + bot.id + ')');
-
-	console.log('\n');
-
+// Bot startup
+client.once('ready', () => {
 	// Check if the settings file exists and load it up
 	if (fs.existsSync(settingsPath)) {
 		botSettings = JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
@@ -44,7 +21,7 @@ bot.on('ready', function (evt) {
 	}
 
 	// Ensure each guild the bot is in has an entry in settings
-	for (var key in bot.servers) {
+	for (var key in client.servers) {
 		if (key in botSettings) {
 			console.log(key+' data reported exists');
 		} else {
@@ -56,17 +33,21 @@ bot.on('ready', function (evt) {
 		}
 	}
 
-	console.log('\n'+bot.username+' loaded and logged in\n');
+	console.log('\n'+client.user.username+' loaded and logged in\n');
 });
 
-// On message in the server
-bot.on('message', function (user, userID, channelID, message, evt) {
-	// Guild ID for where the message came from
-	let guildID = evt.d.guild_id;
+client.on('message', message => {
+	// Get necessary variables
+	let channelID = message.channel.id;
+	let guildID = message.channel.guild.id;
+	let userID = message.author.id;
+	let prefix = botSettings[guildID].prefix;
+
+	console.log(guildID);
 
 	// Cancel code execution if it was executed by the bot itself
 	// This will prevent loops of the bot talking to itself
-	if (userID == bot.id) {
+	if (message.author.bot) {
 		return;
 	}
 
@@ -74,13 +55,13 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 		let channelSettings = botSettings[guildID].channels[channelID];
 		let current = channelSettings.creminder.current;
 		let delay = channelSettings.creminder.delay;
-		let message = channelSettings.creminder.message;
+		let msg = channelSettings.creminder.message;
 
-		if (delay > 0 && message.length > 0) {
+		if (delay > 0 && message.content.length > 0) {
 			if (current - 1 <= 0) {
-				bot.sendMessage({
+				client.sendMessage({
 					to: channelID,
-					message: message
+					message: msg
 				});
 
 				botSettings[guildID].channels[channelID].creminder.current = delay;
@@ -93,87 +74,62 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 	}
 
 	// Listen for messages that start with the prefix, or if the bot is mentioned
-	if (message.substring(0, botSettings[guildID].prefix.length) == botSettings[guildID].prefix) {
-        let args = message.substring(botSettings[guildID].prefix.length).split(' ');
-        let cmd = args[0];
-
+	if (message.content.startsWith(prefix)) {
+		let args = message.content.slice(prefix.length).split(/ +/);
+		let cmd = args.shift().toLowerCase();
 		let rtrn = '';
 
-        switch(cmd) {
+		switch(cmd){
             case 'ping':
-                bot.sendMessage({
-                    to: channelID,
-                    message: 'Pong!'
-                });
+				message.channel.send('Pong recieved after '+(Date.now() - message.createdTimestamp)+'ms');
 
 				rtrn = 'pong';
 
 	            break;
-            // case 'invite':
-            //     bot.sendMessage({
-            //         to: channelID,
-            //         message: bot.inviteurl+auth.perms
-            //     });
-			//
-			// 	rtrn = 'invite url';
-			//
-	        //     break;
+            case 'invite':
+				message.channel.send('https://discordapp.com/oauth2/authorize?client_id=726760083857473597&scope=bot&'+perms);
+
+				rtrn = 'invite url';
+
+	            break;
 			case 'help':
-				if (args[1] == 'ping') {
-					bot.sendMessage({
-						to: channelID,
-						message: 'Command: ping\nUsage: '+botSettings[guildID].prefix+'ping\nPings the bot, used to check if the bot is running properly and to check the command delay'
-					});
+				if (args[0] == 'ping') {
+					message.channel.send('Command: ping\nUsage: '+prefix+'ping\nPings the bot, used to check if the bot is running properly and to check the command delay');
 
 					rtrn = 'pinghelp';
-				} else if (args[1] == 'settings') {
-					bot.sendMessage({
-						to: channelID,
-						message: 'Command: settings\nUsage: '+botSettings[guildID].prefix+'settings [setting] [value]\nLists and sets settings for the bot'
-					});
+				} else if (args[0] == 'settings') {
+					message.channel.send('Command: settings\nUsage: '+prefix+'settings [setting] [value]\nLists and sets settings for the bot');
 
 					rtrn = 'settingshelp';
-				} else if (args[1] == 'creminder') {
-					bot.sendMessage({
-						to: channelID,
-						message: 'Command: creminder\nUsage: '+botSettings[guildID].prefix+'creminder <message/off> [delay]\nReminds users in a channel every set amount of messages of a specified message. "'+botSettings[guildID].prefix+'creminder off" will disable the reminder'
-					});
+				} else if (args[0] == 'creminder') {
+					message.channel.send('Command: creminder\nUsage: '+prefix+'creminder <message/off> [delay]\nReminds users in a channel every set amount of messages of a specified message. "'+prefix+'creminder off" will disable the reminder');
 
 					rtrn = 'creminderhelp';
 				} else {
-					bot.sendMessage({
-						to: channelID,
-						message: 'Commands:\n```General:\nping\n\nAdmin:\nsettings, creminder\n\n'+botSettings[guildID].prefix+'help <command> to see more details```'
-					});
+					message.channel.send('Commands:\n```General:\nping\n\nAdmin:\nsettings, creminder\n\n'+prefix+'help <command> to see more details```');
 
 					rtrn = 'helplist';
 				}
 
 				break;
 			case 'settings':
-				if (args[1] == 'prefix') {
-					if (args[2]) {
-						botSettings[guildID].prefix = args[2];
+				if (args[0] == 'prefix') {
+					if (args[1]) {
+						botSettings[guildID].prefix = args[1];
 
 						// Write the settings back into the file
 						fs.writeFileSync(settingsPath, JSON.stringify(botSettings));
 
-						bot.sendMessage({
-							to: channelID,
-							message: 'New Prefix set as: '+args[2]
-						});
+						message.channel.send('New Prefix set as: '+args[1]);
 
 						rtrn = 'prefixset';
 					} else {
-						bot.sendMessage({
-							to: channelID,
-							message: '```Setting: prefix\nUsage: '+botSettings[guildID].prefix+'settings prefix <newPrefix>\nSet the prefix for bot commands```'
-						});
+						message.channel.send('```Setting: prefix\nUsage: '+prefix+'settings prefix <newPrefix>\nSet the prefix for bot commands```');
 
 						rtrn = 'prefixhelp';
 					}
-				} else if (args[1] == 'filter') {
-					if (args[2] == 'list') {
+				} else if (args[0] == 'filter') {
+					if (args[1] == 'list') {
 						if ('list' in botSettings[guildID].filter) {
 							let filterList = botSettings[guildID].filter.list;
 							let returnList = 'Filtered Words/Phrases:';
@@ -182,27 +138,21 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 								returnList += '\n'+(i+1)+'. '+filterList[i];
 							}
 
-							bot.sendMessage({
-								to: channelID,
-								message: '```'+returnList+'```'
-							});
+							message.channel.send('```'+returnList+'```');
 
 							rtrn = 'filterlist';
 						} else {
-							bot.sendMessage({
-								to: channelID,
-								message: '```Filter Words/Phrases:```'
-							});
+							message.channel.send('```Filter Words/Phrases:```');
 
 							rtrn = 'filterlist';
 						}
-					} else if (args[2] == 'add') {
-						let phrase = args[3];
+					} else if (args[1] == 'add') {
+						let phrase = args[2];
 
 						if (phrase) {
 							// Find the full string if there's a quotation
-							if (args[3].substring(0, 1) == '"' && args[3].substring(args[3].length-1) != '"') {
-								for (var i = 4; i < args.length; i++) {
+							if (args[2].substring(0, 1) == '"' && args[2].substring(args[3].length-1) != '"') {
+								for (var i = 3; i < args.length; i++) {
 									if (args[i].substring(args[i].length-1) == '"') {
 										phrase += ' '+args[i];
 
@@ -225,27 +175,21 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 
 							fs.writeFileSync(settingsPath, JSON.stringify(botSettings));
 
-							bot.sendMessage({
-								to: channelID,
-								message: 'Added "'+phrase+'" to filter list'
-							});
+							message.channel.send('Added "'+phrase+'" to filter list');
 
 							rtrn = 'filteradd';
 						} else {
-							bot.sendMessage({
-								to: channelID,
-								message: '```Setting: filter\nUsage: '+botSettings[guildID].prefix+'settings filter <list/add/remove/clear> [word/phrase]\nAdd/remove words from the filter list, or list all filter words, or clear the filter list to disable the filter.```'
-							});
+							message.channel.send('```Setting: filter\nUsage: '+prefix+'settings filter <list/add/remove/clear> [word/phrase]\nAdd/remove words from the filter list, or list all filter words, or clear the filter list to disable the filter.```');
 
 							rtrn = 'filteraddfail';
 						}
-					} else if (args[2] == 'remove') {
-						let term = args[3];
+					} else if (args[1] == 'remove') {
+						let term = args[2];
 
 						if (term) {
 							// Find the full string if there's a quotation
-							if (args[3].substring(0, 1) == '"' && args[3].substring(args[3].length-1) != '"') {
-								for (var i = 4; i < args.length; i++) {
+							if (args[2].substring(0, 1) == '"' && args[2].substring(args[2].length-1) != '"') {
+								for (var i = 3; i < args.length; i++) {
 									if (args[i].substring(args[i].length-1) == '"') {
 										term += ' '+args[i];
 
@@ -269,10 +213,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 									// Remove the given index from the array
 									let removed = botSettings[guildID].filter.list.splice(term, 1);
 
-									bot.sendMessage({
-										to: channelID,
-										message: 'Removed '+removed+' from the filter list'
-									});
+									message.channel.send('Removed '+removed+' from the filter list');
 
 									fs.writeFileSync(settingsPath, JSON.stringify(botSettings));
 
@@ -293,17 +234,11 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 									}
 
 									if (removed == '') {
-										bot.sendMessage({
-											to: channelID,
-											message: term+' was not found in the list'
-										});
+										message.channel.send(term+' was not found in the list');
 
 										rtrn = 'filterremovefail';
 									} else {
-										bot.sendMessage({
-											to: channelID,
-											message: 'Removed '+removed+' from the filter list'
-										});
+										message.channel.send('Removed '+removed+' from the filter list');
 
 										fs.writeFileSync(settingsPath, JSON.stringify(botSettings));
 
@@ -311,129 +246,38 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 									}
 								}
 							} else {
-								bot.sendMessage({
-									to: channelID,
-									message: 'There are no words being filtered'
-								});
+								message.channel.send('There are no words being filtered');
 
 								rtrn = 'filterremovefail';
 							}
 						}
-					} else if (args[2] == 'clear') {
+					} else if (args[1] == 'clear') {
 						// Set a new array
 						botSettings[guildID].filter.list = JSON.parse('[]');
 
 						fs.writeFileSync(settingsPath, JSON.stringify(botSettings));
 
-						bot.sendMessage({
-							to: channelID,
-							message: 'Filter list cleared'
-						});
+						message.channel.send('Filter list cleared');
 
 						rtrn = 'filterclear';
 					} else {
-						bot.sendMessage({
-							to: channelID,
-							message: '```Setting: filter\nUsage: '+botSettings[guildID].prefix+'settings filter <list/add/remove/clear> [word/phrase/id]\nAdd/remove words from the filter list, or list all filter words, or clear the filter list to disable the filter.```'
-						});
+						message.channel.send('```Setting: filter\nUsage: '+prefix+'settings filter <list/add/remove/clear> [word/phrase/id]\nAdd/remove words from the filter list, or list all filter words, or clear the filter list to disable the filter.```');
 
 						rtrn = 'filterhelp';
 					}
 				} else {
-					bot.sendMessage({
-						to: channelID,
-						message: '```General:\nprefix\n\nAdmin:\nfilter\n\n'+botSettings[guildID].prefix+'settings <setting> to see more details```'
-					});
+					message.channel.send('```General:\nprefix\n\nAdmin:\nfilter\n\n'+prefix+'settings <setting> to see more details```');
 
 					rtrn = 'settingslist';
 				}
 
 				break;
-			case 'creminder':
-				if (args[1] != undefined && args[2] != undefined && typeof args[2] != 'number') {
-					let crmessage = args[1];
-					let crdelay = args[2];
-
-					// Find the full string if there's a quotation
-					if (crmessage.substring(0, 1) == '"' && crmessage.substring(crmessage.length-1) != '"') {
-						for (var i = 2; i < args.length; i++) {
-							if (args[i].substring(args[i].length-1) == '"') {
-								crmessage += ' '+args[i];
-								crdelay = args[i+1];
-
-								break;
-							} else {
-								crmessage += ' '+args[i];
-								crdelay = args[i+1];
-							}
-						}
-					}
-
-					// Ensure that everything is correct
-					if (parseInt(crdelay, 10) >= 1 && crdelay != undefined) {
-						// Remove quotes
-						crmessage = crmessage.replace(/"/g, '');
-						crdelay = crdelay.replace(/"/g, '');
-
-						botSettings[guildID].channels = JSON.parse('{"'+channelID+'":{"creminder":{"message":"'+crmessage+'","delay":"'+crdelay+'","current":"'+crdelay+'"}}}');
-
-						fs.writeFileSync(settingsPath, JSON.stringify(botSettings));
-
-						bot.sendMessage({
-							to: channelID,
-							message: 'Will remind users in <#'+channelID+'> every '+crdelay+' messages about "'+crmessage+'"'
-						});
-
-						rtrn = 'creminderset';
-					} else {
-						bot.sendMessage({
-							to: channelID,
-							message: 'Usage: '+botSettings[guildID].prefix+'creminder [message] [delay]'
-						});
-
-						rtrn = 'creminderfail';
-					}
-				} else if (args[1] == 'off') {
-					if (channelID in botSettings[guildID].channels) {
-						botSettings[guildID].channels = JSON.parse('{"'+channelID+'":{"creminder":{"message":"N/A","delay":"0","current":"0"}}}');
-
-						fs.writeFileSync(settingsPath, JSON.stringify(botSettings));
-
-						bot.sendMessage({
-							to: channelID,
-							message: 'Stopped reminding users in <#'+channelID+'>'
-						});
-
-						rtrn = 'creminderoff';
-					}
-				} else {
-					bot.sendMessage({
-						to: channelID,
-						message: 'Usage: '+botSettings[guildID].prefix+'creminder [message] [delay]'
-					});
-
-					rtrn = 'creminderex';
-				}
-
-				break;
 			default:
-				bot.sendMessage({
-					to: channelID,
-					message: 'Unrecognized command. Use '+botSettings[guildID].prefix+'help to see a list of commands and their usage'
-				});
 
-				rtrn = 'help';
-        }
-
-		console.log('Returned '+rtrn+' to '+user+' ('+userID+')');
-    } else if (message.split(' ')[0] == '<@!'+bot.id+'>') {
-		if (message.split(' ')[1] == 'help') {
-			bot.sendMessage({
-				to: channelID,
-				message: botSettings[guildID].prefix+' is the prefix for the bot. To see the commands list use '+botSettings[guildID].prefix+'help'
-			});
-
-			console.log('Returned mentionhelp to '+user+' ('+userID+')');
 		}
-    }
-});
+	}
+
+	console.log(message);
+})
+
+client.login(token);

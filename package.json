@@ -1,11 +1,10 @@
 {
   "name": "discord-solar-bot",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Discord bot for SolarDelton",
   "main": "bot.js",
   "dependencies": {
-    "discord.io": "https://github.com/woor/discord.io/tarball/gateway_v6",
-    "winston": "^3.3.3"
+    "discord.js": "^12.2.0"
   },
   "devDependencies": {},
   "scripts": {
