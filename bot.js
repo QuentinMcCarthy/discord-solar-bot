@@ -338,6 +338,16 @@ client.on('message', message => {
 
 			console.log('Returned mentionhelp to '+message.author.username+' ('+message.author.id+')');
 		}
+	} else {
+		let toFilter = message.content.toLowerCase();
+
+		for (var i = 0; i < botSettings[guildID].filter.list.length; i++) {
+			if (toFilter.includes(botSettings[guildID].filter.list[i])) {
+				message.delete();
+
+				message.channel.send(botSettings[guildID].filter.list[i]+' is a banned word!');
+			}
+		}
 	}
 })
 
