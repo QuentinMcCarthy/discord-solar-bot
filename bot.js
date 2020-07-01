@@ -43,8 +43,6 @@ client.on('message', message => {
 	let userID = message.author.id;
 	let prefix = botSettings[guildID].prefix;
 
-	console.log(guildID);
-
 	// Cancel code execution if it was executed by the bot itself
 	// This will prevent loops of the bot talking to itself
 	if (message.author.bot) {
@@ -272,12 +270,75 @@ client.on('message', message => {
 				}
 
 				break;
-			default:
+			case 'creminder':
+				if (args[0] != undefined && args[1] != undefined && typeof args[1] != 'number') {
+					let crmessage = args[0];
+					let crdelay = args[1];
 
+					// Find the full string if there's a quotation
+					if (crmessage.substring(0, 1) == '"' && crmessage.substring(crmessage.length-1) != '"') {
+						for (var i = 2; i < args.length; i++) {
+							if (args[i].substring(args[i].length-1) == '"') {
+								crmessage += ' '+args[i];
+								crdelay = args[i+1];
+
+								break;
+							} else {
+								crmessage += ' '+args[i];
+								crdelay = args[i+1];
+							}
+						}
+					}
+
+					// Ensure that everything is correct
+					if (parseInt(crdelay, 10) >= 1 && crdelay != undefined) {
+						// Remove quotes
+						crmessage = crmessage.replace(/"/g, '');
+						crdelay = crdelay.replace(/"/g, '');
+
+						botSettings[guildID].channels = JSON.parse('{"'+channelID+'":{"creminder":{"message":"'+crmessage+'","delay":"'+crdelay+'","current":"'+crdelay+'"}}}');
+
+						fs.writeFileSync(settingsPath, JSON.stringify(botSettings));
+
+						message.channel.send('Will remind users in <#'+channelID+'> every '+crdelay+' messages about "'+crmessage+'"');
+
+						rtrn = 'creminderset';
+					} else {
+						message.channel.send('Usage: '+botSettings[guildID].prefix+'creminder [message] [delay]');
+
+						rtrn = 'creminderfail';
+					}
+				} else if (args[0] == 'off') {
+					if (channelID in botSettings[guildID].channels) {
+						botSettings[guildID].channels = JSON.parse('{"'+channelID+'":{"creminder":{"message":"N/A","delay":"0","current":"0"}}}');
+
+						fs.writeFileSync(settingsPath, JSON.stringify(botSettings));
+
+						message.channel.send('Stopped reminding users in <#'+channelID+'>');
+
+						rtrn = 'creminderoff';
+					}
+				} else {
+					message.channel.send('Usage: '+prefix+'creminder [message] [delay]');
+
+					rtrn = 'creminderex';
+				}
+
+				break;
+			default:
+				message.channel.send('Unrecognized command. Use '+prefix+'help to see a list of commands and their usage');
+
+				rtrn = 'help';
+		}
+
+		console.log('Returned '+rtrn+' to '+message.author.username+' ('+message.author.id+')');
+	} else if (message.content.startsWith('<@!'+client.user.id+'>')) {
+		if (message.content.split(' ')[1] == 'help') {
+			message.channel.send(prefix+' is the prefix for the bot. To see the commands list use '+prefix+'help');
+
+			console.log('Returned mentionhelp to '+message.author.username+' ('+message.author.id+')');
 		}
 	}
-
-	console.log(message);
 })
 
 client.login(token);
