@@ -1,8 +1,24 @@
 const Discord = require('discord.js');
 const fs = require('fs');
+const Enmap = require('enmap');
 const client = new Discord.Client();
 const {token, perms} = require('./auth.json');
-const settingsPath = './bot_data/settings.json';
+
+client.settings = new Enmap({
+	fetchAll: true,
+	autoFetch: true,
+	cloneLevel: 'deep'
+});
+
+// Default settings
+const defaultSettings = {
+	prefix: '!',
+	channels: {},
+	filter: {
+		list: [],
+		response: 'Please don\'t use banned words'
+	}
+}
 
 // Dynamic command files
 client.commands = new Discord.Collection();
@@ -18,69 +34,50 @@ for (const file of commandFiles) {
 // Cooldowns
 const cooldowns = new Discord.Collection();
 
-// Save settings into a variable from the file
-var botSettings = JSON.parse('{}');
-
 // Bot startup
 client.once('ready', () => {
-	// Check if the settings file exists and load it up
-	if (fs.existsSync(settingsPath)) {
-		botSettings = JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
+	client.guilds.cache.forEach(guild => {
+		client.settings.ensure(guild.id, defaultSettings);
 
-		console.log('Settings file successfully loaded');
-	} else {
-		fs.writeFileSync(settingsPath, JSON.stringify(botSettings));
-
-		console.log('Settings file doesn\'t exist; new file saved');
-	}
-
-	// Ensure each guild the bot is in has an entry in settings
-	for (var key in client.servers) {
-		if (key in botSettings) {
-			console.log(key+' data reported exists');
-		} else {
-			botSettings[key] = JSON.parse('{"prefix":"!","channels":{},"filter":{}}');
-
-			fs.writeFileSync(settingsPath, JSON.stringify(botSettings));
-
-			console.log('Created guild entry for '+key);
-		}
-	}
+		console.log('Settings loaded for '+guild.name);
+	});
 
 	console.log('\n'+client.user.username+' loaded and logged in\n');
 });
 
-client.on('message', message => {
-	// Get necessary variables
-	const channelID = message.channel.id;
-	const guildID = message.channel.guild.id;
-	const userID = message.author.id;
-	const prefix = botSettings[guildID].prefix;
+client.on('guildDelete', guild => {
+	// If the bot disconnects from a server, delete the settings
+	client.settings.delete(guild.id);
+});
 
-	// Cancel code execution if it was executed by the bot itself
-	// This will prevent loops of the bot talking to itself
-	if (message.author.bot) {
+client.on('message', message => {
+	// Don't respond to commands in DMs or from bots
+	if (!message.guild || message.author.bot) {
 		return;
 	}
 
-	if (channelID in botSettings[guildID].channels) {
-		let channelSettings = botSettings[guildID].channels[channelID];
+	// Get necessary variables
+	const channelID = message.channel.id;
+	const guildID = message.guild.id;
+	const userID = message.author.id;
+	const guildSettings = client.settings.ensure(guildID, defaultSettings);
+	const prefix = guildSettings.prefix;
+
+	if (channelID in guildSettings.channels) {
+		let channelSettings = guildSettings.channels[channelID];
 		let current = channelSettings.creminder.current;
 		let delay = channelSettings.creminder.delay;
 		let msg = channelSettings.creminder.message;
 
 		if (delay > 0 && message.content.length > 0) {
 			if (current - 1 <= 0) {
-				client.sendMessage({
-					to: channelID,
-					message: msg
-				});
+				message.channel.send(msg);
 
-				botSettings[guildID].channels[channelID].creminder.current = delay;
+				client.settings.set(guildID, delay, 'channels.'+channelID+'.creminder.current');
 
 				console.log('Reminded users in '+channelID);
 			} else {
-				botSettings[guildID].channels[channelID].creminder.current = botSettings[guildID].channels[channelID].creminder.current - 1;
+				client.settings.set(guildID, current-1, 'channels.'+channelID+'.creminder.current')
 			}
 		}
 	}
@@ -119,7 +116,7 @@ client.on('message', message => {
 
 		// Dynamic command execution
 		try {
-			command.execute(prefix, message, args);
+			command.execute(client, message, args);
 		} catch (err) {
 			console.log(err);
 
@@ -133,14 +130,14 @@ client.on('message', message => {
 
 			console.log('Returned mentionhelp to '+message.author.username+' ('+message.author.id+')');
 		}
-	} else {
+	} else if (client.settings.has('${guildID}.filter.list')) {
 		let toFilter = message.content.toLowerCase();
 
-		for (var i = 0; i < botSettings[guildID].filter.list.length; i++) {
-			if (toFilter.includes(botSettings[guildID].filter.list[i])) {
+		for (var i = 0; i < guildSettings.filter.list.length; i++) {
+			if (toFilter.includes(guildSettings.filter.list[i])) {
 				message.delete();
 
-				message.channel.send(botSettings[guildID].filter.list[i]+' is a banned word!');
+				message.channel.send(guildSettings.filter.response);
 			}
 		}
 	}

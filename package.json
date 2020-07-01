@@ -4,7 +4,8 @@
   "description": "Discord bot for SolarDelton",
   "main": "bot.js",
   "dependencies": {
-    "discord.js": "^12.2.0"
+    "discord.js": "^12.2.0",
+    "enmap": "^5.3.1"
   },
   "devDependencies": {},
   "scripts": {

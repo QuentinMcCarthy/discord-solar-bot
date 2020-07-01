@@ -1,28 +1,31 @@
+const Enmap = require('enmap');
+
 module.exports = {
 	name: 'settings',
 	description: 'Lists and sets settings for the bot',
 	cooldown: 2,
 	usage: '[setting]',
-	execute(prefix, message, args) {
+	execute(client, message, args) {
+		const guildID = message.guild.id;
+		const guildSettings = client.settings.get(guildID);
+		let rtrn = '';
+
 		if (args[0] == 'prefix') {
 			if (args[1]) {
-				botSettings[guildID].prefix = args[1];
+				client.settings.set(guildID, args[1], 'prefix');
 
-				// Write the settings back into the file
-				fs.writeFileSync(settingsPath, JSON.stringify(botSettings));
-
-				message.channel.send('New Prefix set as: '+args[1]);
+				message.channel.send('New prefix set as: '+args[1]);
 
 				rtrn = 'prefixset';
 			} else {
-				message.channel.send('```Setting: prefix\nUsage: '+prefix+'settings prefix <newPrefix>\nSet the prefix for bot commands```');
+				message.channel.send('```Setting: prefix\nUsage: '+guildSettings.prefix+'settings prefix <newPrefix>\nSet the prefix for bot commands```');
 
 				rtrn = 'prefixhelp';
 			}
 		} else if (args[0] == 'filter') {
 			if (args[1] == 'list') {
-				if ('list' in botSettings[guildID].filter) {
-					let filterList = botSettings[guildID].filter.list;
+				if (client.settings.has('${guildID}.filter.list')) {
+					let filterList = guildSettings.filter.list;
 					let returnList = 'Filtered Words/Phrases:';
 
 					for (var i = 0; i < filterList.length; i++) {
@@ -42,7 +45,7 @@ module.exports = {
 
 				if (phrase) {
 					// Find the full string if there's a quotation
-					if (args[2].substring(0, 1) == '"' && args[2].substring(args[3].length-1) != '"') {
+					if (args[2].substring(0, 1) == '"' && args[2].substring(args[2].length-1) != '"') {
 						for (var i = 3; i < args.length; i++) {
 							if (args[i].substring(args[i].length-1) == '"') {
 								phrase += ' '+args[i];
@@ -57,20 +60,23 @@ module.exports = {
 					// Remove quotes
 					phrase = phrase.replace(/"/g, '');
 
+					console.log(client.settings.has('channels'));
+
 					// Check if the list already exists. If not, create it.
-					if ('list' in botSettings[guildID].filter) {
-						botSettings[guildID].filter.list.push(phrase);
+					if (client.settings.has(guildID+'.filter.list')) {
+						client.settings.push(guildID, phrase, 'filter.list')
 					} else {
-						botSettings[guildID].filter = JSON.parse('{"list":["'+phrase+'"]}')
+						console.log("List getting cleared");
+						client.settings.set(guildID, [phrase], 'filter.list')
 					}
 
-					fs.writeFileSync(settingsPath, JSON.stringify(botSettings));
+					console.log(client.settings.get(guildID));
 
 					message.channel.send('Added "'+phrase+'" to filter list');
 
 					rtrn = 'filteradd';
 				} else {
-					message.channel.send('```Setting: filter\nUsage: '+prefix+'settings filter <list/add/remove/clear> [word/phrase]\nAdd/remove words from the filter list, or list all filter words, or clear the filter list to disable the filter.```');
+					message.channel.send('```Setting: filter\nUsage: '+guildSettings.prefix+'settings filter <list/add/remove/clear> [word/phrase]\nAdd/remove words from the filter list, or list all filter words, or clear the filter list to disable the filter.```');
 
 					rtrn = 'filteraddfail';
 				}
@@ -95,30 +101,32 @@ module.exports = {
 					term = term.replace(/"/g, '');
 
 					// Check if the list exists, if not, inform user
-					if ('list' in botSettings[guildID].filter) {
+					if (client.settings.has('${guildID}.filter.list')) {
 						// Is the term a string or an number
 						if(parseInt(term, 10) > 0) {
 							// The given index will be higher than the actual index
 							term = parseInt(term, 10)-1;
 
+							let tempList = guildSettings.filter.list;
+
 							// Remove the given index from the array
-							let removed = botSettings[guildID].filter.list.splice(term, 1);
+							let removed = tempList.splice(term, 1);
 
 							message.channel.send('Removed '+removed+' from the filter list');
 
-							fs.writeFileSync(settingsPath, JSON.stringify(botSettings));
+							client.settings.remove(guildID, removed, 'filter.list');
 
 							rtrn = 'filterremove';
 						} else {
 							let removed = '';
-							let filterList = botSettings[guildID].filter.list;
+							let filterList = guildSettings.filter.list;
 
 							// Find and remove the entry from the array
 							for(var i = 0; i < filterList.length; i++){
 								if (filterList[i] == term) {
 									removed = filterList[i];
 
-									botSettings[guildID].filter.list.splice(i, 1);
+									client.settings.remove(guildID, removed, 'filter.list');
 
 									break;
 								}
@@ -131,8 +139,6 @@ module.exports = {
 							} else {
 								message.channel.send('Removed '+removed+' from the filter list');
 
-								fs.writeFileSync(settingsPath, JSON.stringify(botSettings));
-
 								rtrn = 'filterrremove';
 							}
 						}
@@ -144,20 +150,44 @@ module.exports = {
 				}
 			} else if (args[1] == 'clear') {
 				// Set a new array
-				botSettings[guildID].filter.list = JSON.parse('[]');
-
-				fs.writeFileSync(settingsPath, JSON.stringify(botSettings));
+				client.settings.set(guildID, [], '.filter.list');
 
 				message.channel.send('Filter list cleared');
 
 				rtrn = 'filterclear';
+			} else if (args[1] == 'response') {
+				let newResponse = args[2];
+
+				if (!newResponse || !newResponse.length) {
+					return message.channel.send('The response cannot be blank');
+				}
+
+				// Find the full string if there's a quotation
+				if (args[2].substring(0, 1) == '"' && args[2].substring(args[3].length-1) != '"') {
+					for (var i = 3; i < args.length; i++) {
+						if (args[i].substring(args[i].length-1) == '"') {
+							newResponse += ' '+args[i];
+
+							break;
+						} else {
+							newResponse += ' '+args[i];
+						}
+					}
+
+					// Remove quotes
+					newResponse = newResponse.replace(/"/g, '');
+
+					client.settings.set(guildID, newResponse, 'filter.response');
+
+					message.channel.send('Filter response set as: "'+newResponse+'"');
+				}
 			} else {
-				message.channel.send('```Setting: filter\nUsage: '+prefix+'settings filter <list/add/remove/clear> [word/phrase/id]\nAdd/remove words from the filter list, or list all filter words, or clear the filter list to disable the filter.```');
+				message.channel.send('```Setting: filter\nUsage: '+guildSettings.prefix+'settings filter <list/add/remove/clear/response> [word/phrase/id]\nAdd/remove words from the filter list, or list all filter words, or clear the filter list to disable the filter. Response is customisable.```');
 
 				rtrn = 'filterhelp';
 			}
 		} else {
-			message.channel.send('```General:\nprefix\n\nAdmin:\nfilter\n\n'+prefix+'settings <setting> to see more details```');
+			message.channel.send('```Settings:\nprefix, filter\n\n'+guildSettings.prefix+'settings <setting> to see more details```');
 
 			rtrn = 'settingslist';
 		}

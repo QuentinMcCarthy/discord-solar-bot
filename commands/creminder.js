@@ -1,9 +1,15 @@
+const Enmap = require('enmap');
+
 module.exports = {
 	name: 'creminder',
 	description: 'Reminds users in a channel every set amount of messages of a specified message.',
 	usage: '<message/off> [delay]',
 	cooldown: 2,
-	execute(prefix, message, args) {
+	execute(client, message, args) {
+		const guildID = message.guild.id;
+		const guildSettings = client.settings.get(guildID);
+		var rtrn = '';
+
 		if (args[0] != undefined && args[1] != undefined && typeof args[1] != 'number') {
 			let crmessage = args[0];
 			let crdelay = args[1];
@@ -29,30 +35,37 @@ module.exports = {
 				crmessage = crmessage.replace(/"/g, '');
 				crdelay = crdelay.replace(/"/g, '');
 
-				botSettings[guildID].channels = JSON.parse('{"'+channelID+'":{"creminder":{"message":"'+crmessage+'","delay":"'+crdelay+'","current":"'+crdelay+'"}}}');
+				client.settings.set(guildID, crmessage, 'channels.'+message.channel.id+'.creminder.message');
+				client.settings.set(guildID, crdelay, 'channels.'+message.channel.id+'.creminder.delay');
+				client.settings.set(guildID, crdelay, 'channels.'+message.channel.id+'.creminder.current');
 
-				fs.writeFileSync(settingsPath, JSON.stringify(botSettings));
+				console.log(client.settings);
 
-				message.channel.send('Will remind users in <#'+channelID+'> every '+crdelay+' messages about "'+crmessage+'"');
+				message.channel.send('Will remind users in <#'+message.channel.id+'> every '+crdelay+' messages about "'+crmessage+'"');
 
 				rtrn = 'creminderset';
 			} else {
-				message.channel.send('Usage: '+botSettings[guildID].prefix+'creminder [message] [delay]');
+				message.channel.send('Usage: '+guildSettings.prefix+'creminder [message] [delay]');
 
 				rtrn = 'creminderfail';
 			}
 		} else if (args[0] == 'off') {
-			if (channelID in botSettings[guildID].channels) {
-				botSettings[guildID].channels = JSON.parse('{"'+channelID+'":{"creminder":{"message":"N/A","delay":"0","current":"0"}}}');
+			console.log(client.settings.get(guildID));
+			if (client.settings.has('${guildID}.channels.'+message.channel.id)) {
+				client.settings.set(guildID, 'N/A', 'channels.'+message.channel.id+'.creminder.message');
+				client.settings.set(guildID, '0', 'channels.'+message.channel.id+'.creminder.delay');
+				client.settings.set(guildID, '0', 'channels.'+message.channel.id+'.creminder.current');
 
-				fs.writeFileSync(settingsPath, JSON.stringify(botSettings));
-
-				message.channel.send('Stopped reminding users in <#'+channelID+'>');
+				message.channel.send('Stopped reminding users in <#'+message.channel.id+'>');
 
 				rtrn = 'creminderoff';
+			} else {
+				message.channel.send('No reminders set for this channel');
+
+				rtrn = 'creminderfail'
 			}
 		} else {
-			message.channel.send('Usage: '+prefix+'creminder [message] [delay]');
+			message.channel.send('Usage: '+guildSettings.prefix+'creminder <message/off> [delay]');
 
 			rtrn = 'creminderex';
 		}
