@@ -130,7 +130,7 @@ client.on('message', message => {
 
 			console.log('Returned mentionhelp to '+message.author.username+' ('+message.author.id+')');
 		}
-	} else if (client.settings.has('${guildID}.filter.list')) {
+	} else if (client.settings.has(guildID, 'filter.list')) {
 		let toFilter = message.content.toLowerCase();
 
 		for (var i = 0; i < guildSettings.filter.list.length; i++) {

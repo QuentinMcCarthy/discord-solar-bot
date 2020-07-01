@@ -24,7 +24,7 @@ module.exports = {
 			}
 		} else if (args[0] == 'filter') {
 			if (args[1] == 'list') {
-				if (client.settings.has('${guildID}.filter.list')) {
+				if (client.settings.has(guildID, 'filter.list')) {
 					let filterList = guildSettings.filter.list;
 					let returnList = 'Filtered Words/Phrases:';
 
@@ -63,7 +63,7 @@ module.exports = {
 					console.log(client.settings.has('channels'));
 
 					// Check if the list already exists. If not, create it.
-					if (client.settings.has(guildID+'.filter.list')) {
+					if (client.settings.has(guildID, 'filter.list')) {
 						client.settings.push(guildID, phrase, 'filter.list')
 					} else {
 						console.log("List getting cleared");
@@ -101,13 +101,14 @@ module.exports = {
 					term = term.replace(/"/g, '');
 
 					// Check if the list exists, if not, inform user
-					if (client.settings.has('${guildID}.filter.list')) {
+					if (client.settings.has(guildID, 'filter.list')) {
 						// Is the term a string or an number
 						if(parseInt(term, 10) > 0) {
 							// The given index will be higher than the actual index
 							term = parseInt(term, 10)-1;
 
-							let tempList = guildSettings.filter.list;
+							// let tempList = guildSettings.filter.list;
+							let tempList = client.settings.get(guildID, 'filter.list');
 
 							// Remove the given index from the array
 							let removed = tempList.splice(term, 1);

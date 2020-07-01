@@ -51,7 +51,7 @@ module.exports = {
 			}
 		} else if (args[0] == 'off') {
 			console.log(client.settings.get(guildID));
-			if (client.settings.has('${guildID}.channels.'+message.channel.id)) {
+			if (client.settings.has(guildID, 'filter.list')) {
 				client.settings.set(guildID, 'N/A', 'channels.'+message.channel.id+'.creminder.message');
 				client.settings.set(guildID, '0', 'channels.'+message.channel.id+'.creminder.delay');
 				client.settings.set(guildID, '0', 'channels.'+message.channel.id+'.creminder.current');
