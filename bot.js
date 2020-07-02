@@ -114,9 +114,11 @@ client.on('message', message => {
 				else if (role.name === 'Administrator') {return true;}
 			});
 
-			if (!isAdmin) {
+			let isOwner = (message.member.id === message.guild.ownerID);
+
+			if (!isAdmin && !isOwner) {
 				message.channel.send('This command can only be used by Admins');
-				
+
 				return;
 			}
 		}
