@@ -5,6 +5,7 @@ module.exports = {
 	description: 'Lists and sets settings for the bot',
 	cooldown: 2,
 	usage: '[setting]',
+	admin: true,
 	execute(client, message, args) {
 		const guildID = message.guild.id;
 		let rtrn = '';

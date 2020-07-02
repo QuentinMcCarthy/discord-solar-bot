@@ -107,6 +107,20 @@ client.on('message', message => {
 		timestamps.set(message.author.id, now);
 		setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
 
+		if (command.admin) {
+			let isAdmin = message.member.roles.cache.some(role => {
+				if (role.name === 'Admin') {return true;}
+				else if (role.name === 'Admins') {return true;}
+				else if (role.name === 'Administrator') {return true;}
+			});
+
+			if (!isAdmin) {
+				message.channel.send('This command can only be used by Admins');
+				
+				return;
+			}
+		}
+
 		// Dynamic command execution
 		try {
 			command.execute(client, message, args);

@@ -5,6 +5,7 @@ module.exports = {
 	description: 'Reminds users in a channel every set amount of messages of a specified message.',
 	usage: '<message/off> [delay]',
 	cooldown: 2,
+	admin: true,
 	execute(client, message, args) {
 		const guildID = message.guild.id;
 		var rtrn = '';

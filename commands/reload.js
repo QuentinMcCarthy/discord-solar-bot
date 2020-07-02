@@ -1,6 +1,9 @@
 module.exports = {
 	name: 'reload',
 	description: 'Reloads a command, used in dev',
+	usage: '<command>',
+	cooldown: 2,
+	admin: true,
 	execute(client, message, args) {
 		if (!args.length) {
 			return message.channel.send('You didn\'t pass any command to reload');
