@@ -182,8 +182,28 @@ module.exports = {
 
 				rtrn = 'filterhelp';
 			}
+		} else if (args[0] == 'adminrole') {
+				if (args[1]) {
+					let isRoleValid = message.guild.roles.cache.some(role => role.name === args[1]);
+
+					if (!isRoleValid) {
+						message.channel.send('That role doesn\'t exist');
+
+						return;
+					}
+
+					client.settings.set(guildID, args[1], 'adminrole');
+
+					message.channel.send('New adminrole set as: '+args[1]);
+
+					rtrn = 'adminroleset';
+				} else {
+					message.channel.send('```Setting: adminrole\nUsage: '+client.settings.get(guildID, 'prefix')+'settings adminrole <newRole>\nSet the Admin role for bot commands. New role must already exist```');
+
+					rtrn = 'adminrolehelp';
+				}
 		} else {
-			message.channel.send('```Settings:\nprefix, filter\n\n'+client.settings.get(guildID, 'prefix')+'settings <setting> to see more details```');
+			message.channel.send('```Settings:\nprefix, filter, adminrole\n\n'+client.settings.get(guildID, 'prefix')+'settings <setting> to see more details```');
 
 			rtrn = 'settingslist';
 		}

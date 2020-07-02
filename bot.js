@@ -13,6 +13,7 @@ client.settings = new Enmap({
 // Default settings
 const defaultSettings = {
 	prefix: '!',
+	adminrole: 'Admin',
 	channels: {},
 	filter: {
 		list: [],
@@ -108,11 +109,7 @@ client.on('message', message => {
 		setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
 
 		if (command.admin) {
-			let isAdmin = message.member.roles.cache.some(role => {
-				if (role.name === 'Admin') {return true;}
-				else if (role.name === 'Admins') {return true;}
-				else if (role.name === 'Administrator') {return true;}
-			});
+			let isAdmin = message.member.roles.cache.some(role => role.name === client.settings.get(guildID, 'adminrole'));
 
 			let isOwner = (message.member.id === message.guild.ownerID);
 
