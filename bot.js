@@ -5,6 +5,7 @@ const client = new Discord.Client();
 const {token, perms} = require('./auth.json');
 
 client.settings = new Enmap({
+	name: "settings",
 	fetchAll: true,
 	autoFetch: true,
 	cloneLevel: 'deep'
@@ -37,6 +38,10 @@ const cooldowns = new Discord.Collection();
 
 // Bot startup
 client.once('ready', () => {
+	client.settings.defer;
+
+	console.log(client.settings.size+' keys loaded');
+
 	client.guilds.cache.forEach(guild => {
 		client.settings.ensure(guild.id, defaultSettings);
 
