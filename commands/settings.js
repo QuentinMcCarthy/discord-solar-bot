@@ -43,6 +43,8 @@ module.exports = {
 				let phrase = args[2];
 
 				if (phrase) {
+					phrase = phrase.toLowerCase();
+					
 					// Find the full string if there's a quotation
 					if (args[2].substring(0, 1) == '"' && args[2].substring(args[2].length-1) != '"') {
 						for (var i = 3; i < args.length; i++) {

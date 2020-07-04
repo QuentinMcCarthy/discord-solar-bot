@@ -39,18 +39,15 @@ module.exports = {
 				client.settings.set(guildID, crdelay, 'channels.'+message.channel.id+'.creminder.delay');
 				client.settings.set(guildID, crdelay, 'channels.'+message.channel.id+'.creminder.current');
 
-				console.log(client.settings);
-
 				message.channel.send('Will remind users in <#'+message.channel.id+'> every '+crdelay+' messages about "'+crmessage+'"');
 
 				rtrn = 'creminderset';
 			} else {
-				message.channel.send('Usage: '+client.settings.get(guildID, 'prefix')+'creminder [message] [delay]');
+				message.channel.send('Usage: '+client.settings.get(guildID, 'prefix')+'creminder <message/off> [delay]');
 
 				rtrn = 'creminderfail';
 			}
 		} else if (args[0] == 'off') {
-			console.log(client.settings.get(guildID));
 			if (client.settings.has(guildID, 'filter.list')) {
 				client.settings.set(guildID, 'N/A', 'channels.'+message.channel.id+'.creminder.message');
 				client.settings.set(guildID, '0', 'channels.'+message.channel.id+'.creminder.delay');

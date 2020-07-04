@@ -126,13 +126,13 @@ client.on('message', message => {
 		} catch (err) {
 			console.log(err);
 
-			message.channel.send('Unrecognized command. Use '+prefix+'help to see a list of commands and their usage');
+			message.channel.send('Unrecognized command. Use '+client.settings.get(guildID, 'prefix')+'help to see a list of commands and their usage');
 
 			rtrn = 'nocmd';
 		}
 	} else if (message.content.startsWith('<@!'+client.user.id+'>')) {
 		if (message.content.split(' ')[1] == 'help') {
-			message.channel.send(prefix+' is the prefix for the bot. To see the commands list use '+prefix+'help');
+			message.channel.send(client.settings.get(guildID, 'prefix')+' is the prefix for the bot. To see the commands list use '+client.settings.get(guildID, 'prefix')+'help');
 
 			console.log('Returned mentionhelp to '+message.author.username+' ('+message.author.id+')');
 		}

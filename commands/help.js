@@ -12,7 +12,7 @@ module.exports = {
 		if (!args.length) {
 			data.push('```Commands:');
 			data.push(commands.map(command => command.name).join(', '));
-			data.push('\nUse '+client.settings.get(guildID, 'prefix')+'help <command> to see more details```');
+			data.push('\nUse '+client.settings.get(message.guild.id, 'prefix')+'help <command> to see more details```');
 
 			console.log('Returned commandlist to '+message.author.username+' ('+message.author.id+')');
 
@@ -25,13 +25,13 @@ module.exports = {
 		if (!command) {
 			console.log('Returned nocmd to '+message.author.username+' ('+message.author.id+')');
 
-			return message.channel.send('Unrecognized command. Use '+client.settings.get(guildID, 'prefix')+'help to see a list of commands and their usage')
+			return message.channel.send('Unrecognized command. Use '+client.settings.get(message.guild.id, 'prefix')+'help to see a list of commands and their usage')
 		}
 
 		data.push('Command: '+command.name);
 
 		if (command.usage) {
-			data.push('Usage: '+client.settings.get(guildID, 'prefix')+command.name+' '+command.usage);
+			data.push('Usage: '+client.settings.get(message.guild.id, 'prefix')+command.name+' '+command.usage);
 		}
 		if (command.description) {
 			data.push(command.description);
