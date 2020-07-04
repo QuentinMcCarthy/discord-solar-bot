@@ -12,7 +12,7 @@ client.settings = new Enmap({
 
 // Default settings
 const defaultSettings = {
-	prefix: '!',
+	prefix: '~',
 	adminrole: 'Admin',
 	channels: {},
 	filter: {
