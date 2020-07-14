@@ -2,8 +2,8 @@ const Enmap = require('enmap');
 
 module.exports = {
 	name: 'filter',
-	description: 'Add/remove words from the filter list, or list all filter words, or clear the filter list to disable the filter.',
-	usage: '<list/add/remove/clear> [word/phrase]',
+	description: 'Add/remove words from the filter list, or list all filter words, or clear the filter list to disable the filter, or change the response.',
+	usage: '<list/add/remove/clear/response> [word/phrase]',
 	execute(client, message, args) {
 		if (args[0] == 'list') {
 			if (client.settings.has(message.guild.id, 'filter.list')) {
