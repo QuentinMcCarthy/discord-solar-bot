@@ -34,6 +34,17 @@ for (const file of commandFiles) {
 	client.commands.set(command.name, command);
 }
 
+// Dynamic settings files
+client.guildSettings = new Discord.Collection();
+
+const settingsFiles = fs.readdirSync('./settings').filter(file => file.endsWith('.js'));
+
+for (const file of settingsFiles) {
+	const setting = require('./settings/'+file);
+
+	client.guildSettings.set(setting.name, setting);
+}
+
 // Cooldowns
 const cooldowns = new Discord.Collection();
 
@@ -134,15 +145,67 @@ client.on('message', message => {
 			}
 		}
 
-		// Dynamic command execution
-		try {
-			command.execute(client, message, args);
-		} catch (err) {
-			console.log(err);
+		// If the command is settings
+		if (command.name == 'settings') {
+			let data = [];
 
-			message.channel.send('Unrecognized command. Use '+client.settings.get(guildID, 'prefix')+'help to see a list of commands and their usage');
+			if (!args.length) {
+				data.push('```Settings:');
+				data.push(client.guildSettings.map(setting => setting.name).join(', '));
+				data.push('\nUse '+client.settings.get(message.guild.id, 'prefix')+'settings <setting> to see more details```');
 
-			rtrn = 'nocmd';
+				console.log('Returned settingslist to '+message.author.username+' ('+message.author.id+')');
+
+				return message.channel.send(data, {split:true})
+			}
+
+			let name = args[0].toLowerCase();
+			let setting = client.guildSettings.get(name);
+
+			// If the setting doesn't exist, return an error
+			if (!setting) {
+				console.log('Returned nosetting to '+message.author.username+' ('+message.author.id+')');
+
+				return message.channel.send('No such setting. Use '+client.settings.get(message.guild.id, 'prefix')+'settings to see a list of settings and their usage')
+			}
+
+			// If no argument is provided, return the setting's usage
+			if (!args[1]) {
+				data.push('Setting: '+setting.name);
+
+				// Return the setting's usage
+				if (setting.usage) {
+					data.push('Usage: '+client.settings.get(message.guild.id, 'prefix')+'settings '+setting.name+' '+setting.usage);
+				}
+				if (setting.description) {
+					data.push(setting.description);
+				}
+
+				message.channel.send(data, {split:true});
+
+				console.log('Returned '+setting.name+'help to '+message.author.username+' ('+message.author.id+')');
+			} else {
+				args.splice(0, 1);
+
+				try {
+					setting.execute(client, message, args);
+				} catch (err) {
+					console.log(err);
+
+					message.channel.send('An error occurred: '+err.message);
+				}
+			}
+		} else {
+			// Dynamic command execution
+			try {
+				command.execute(client, message, args);
+			} catch (err) {
+				console.log(err);
+
+				message.channel.send('Unrecognized command. Use '+client.settings.get(guildID, 'prefix')+'help to see a list of commands and their usage');
+
+				rtrn = 'nocmd';
+			}
 		}
 	} else if (message.content.startsWith('<@!'+client.user.id+'>')) {
 		if (message.content.split(' ')[1] == 'help') {
