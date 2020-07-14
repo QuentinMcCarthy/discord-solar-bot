@@ -4,6 +4,7 @@ const Enmap = require('enmap');
 const client = new Discord.Client();
 const {token, perms} = require('./auth.json');
 
+// Enmap initialisation
 client.settings = new Enmap({
 	name: "settings",
 	fetchAll: true,
@@ -11,7 +12,7 @@ client.settings = new Enmap({
 	cloneLevel: 'deep'
 });
 
-// Default settings
+// Default guild settings
 const defaultSettings = {
 	prefix: '~',
 	adminrole: 'Admin',
@@ -42,6 +43,9 @@ client.once('ready', () => {
 
 	console.log(client.settings.size+' keys loaded');
 
+	// Ensure each guild has a settings entry
+	// If a settings entry is not found,
+	// Create a new entry with default settings.
 	client.guilds.cache.forEach(guild => {
 		client.settings.ensure(guild.id, defaultSettings);
 
@@ -67,6 +71,7 @@ client.on('message', message => {
 	const guildID = message.guild.id;
 	const userID = message.author.id;
 
+	// Creminder countdown
 	if (client.settings.has(guildID, 'channels.'+channelID)) {
 		if (client.settings.get(guildID, 'channels.'+channelID+'.creminder.delay') > 0 && message.content.length > 0) {
 			if (client.settings.get(guildID, 'channels.'+channelID+'.creminder.current') - 1 <= 0) {
@@ -87,16 +92,19 @@ client.on('message', message => {
 		const commandName = args.shift().toLowerCase();
 		let rtrn = '';
 
+		// If the command does not exist, don't continue
 		if (!client.commands.has(commandName)) {
 			return;
 		}
 
 		const command = client.commands.get(commandName);
 
+		// Put the command on cooldown, if applicable
 		if (!cooldowns.has(command.name)) {
 			cooldowns.set(command.name, new Discord.Collection());
 		}
 
+		// Check the command's cooldown
 		const now = Date.now();
 		const timestamps = cooldowns.get(command.name);
 		const cooldownAmount = (command.cooldown || 3) * 1000;
@@ -113,6 +121,7 @@ client.on('message', message => {
 		timestamps.set(message.author.id, now);
 		setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
 
+		// Check the command's role.
 		if (command.admin) {
 			let isAdmin = message.member.roles.cache.some(role => role.name === client.settings.get(guildID, 'adminrole'));
 

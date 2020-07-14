@@ -10,6 +10,7 @@ module.exports = {
 		const guildID = message.guild.id;
 		let rtrn = '';
 
+		// Settings are not dynamic due to limitations,
 		if (args[0] == 'prefix') {
 			if (args[1]) {
 				client.settings.set(guildID, args[1], 'prefix');
@@ -44,7 +45,7 @@ module.exports = {
 
 				if (phrase) {
 					phrase = phrase.toLowerCase();
-					
+
 					// Find the full string if there's a quotation
 					if (args[2].substring(0, 1) == '"' && args[2].substring(args[2].length-1) != '"') {
 						for (var i = 3; i < args.length; i++) {

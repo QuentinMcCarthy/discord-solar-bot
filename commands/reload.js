@@ -5,6 +5,7 @@ module.exports = {
 	cooldown: 2,
 	admin: true,
 	execute(client, message, args) {
+		// Need to specify a command to reload
 		if (!args.length) {
 			return message.channel.send('You didn\'t pass any command to reload');
 		}
@@ -12,12 +13,15 @@ module.exports = {
 		const commandName = args[0].toLowerCase();
 		const command = client.commands.get(commandName);
 
+		// If the command doesn't exist, return an error
 		if (!command) {
 			return message.channel.send(commandName+' is not an existing command');
 		}
 
+		// Delete the command from the bot's cache.
 		delete require.cache[require.resolve('./'+command.name+'.js')];
 
+		// Try to reload the command.
 		try {
 			const newCommand = require('./'+command.name+'.js');
 			message.client.commands.set(newCommand.name, newCommand);

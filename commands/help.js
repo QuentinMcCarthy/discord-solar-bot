@@ -9,6 +9,7 @@ module.exports = {
 		const data = [];
 		const {commands} = client;
 
+		// If no arguments were provided, list all commands
 		if (!args.length) {
 			data.push('```Commands:');
 			data.push(commands.map(command => command.name).join(', '));
@@ -22,6 +23,7 @@ module.exports = {
 		const name = args[0].toLowerCase();
 		const command = commands.get(name);
 
+		// If the command doesn't exist, return an error
 		if (!command) {
 			console.log('Returned nocmd to '+message.author.username+' ('+message.author.id+')');
 
@@ -30,6 +32,7 @@ module.exports = {
 
 		data.push('Command: '+command.name);
 
+		// Return the command's usage
 		if (command.usage) {
 			data.push('Usage: '+client.settings.get(message.guild.id, 'prefix')+command.name+' '+command.usage);
 		}
