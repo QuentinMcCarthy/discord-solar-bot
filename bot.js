@@ -3,7 +3,7 @@ const fs = require('fs');
 const Enmap = require('enmap');
 const client = new Discord.Client();
 const winston = require('winston');
-const {token, perms} = require('./auth.json');
+const {token, id, perms, devid} = require('./auth.json');
 
 // Logging
 const logger = winston.createLogger({
@@ -147,11 +147,15 @@ client.on('message', message => {
 
 		// Check the command's role.
 		if (command.admin) {
+			// Only those with the adminrole
+			// Or the server owner can use admin flagged commands
 			let isAdmin = message.member.roles.cache.some(role => role.name === client.settings.get(guildID, 'adminrole'));
-
 			let isOwner = (message.member.id === message.guild.ownerID);
 
-			if (!isAdmin && !isOwner) {
+			// If the user is the dev, override the above
+			let isDev = message.member.id === devid;
+
+			if (!isAdmin && !isOwner && !isDev) {
 				message.channel.send('This command can only be used by Admins');
 
 				return;
