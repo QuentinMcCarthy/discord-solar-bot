@@ -1,5 +1,6 @@
 {
 	"token": "InviteTokenHere",
-	"id": "",
-	"perms": "PermCode"
+	"id": "ClientID",
+	"perms": "PermCode",
+	"devid": "DeveloperID"
 }
