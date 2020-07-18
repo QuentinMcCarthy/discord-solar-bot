@@ -11,7 +11,7 @@ const logger = winston.createLogger({
 		new winston.transports.Console(),
 		new winston.transports.File({ filename: 'log.log' }),
 	],
-	format: winston.format.printf(log => '[${log.level.toUpperCase()}] - ${log.message}'),
+	format: winston.format.printf(log => '['+log.level.toUpperCase()+'] - '+log.message),
 });
 
 // Enmap initialisation
@@ -60,6 +60,9 @@ const cooldowns = new Discord.Collection();
 
 // Bot startup
 client.once('ready', () => {
+	let todayDate = new Date();
+	logger.log('info', todayDate.getDate()+'/'+todayDate.getMonth()+'/'+todayDate.getFullYear())
+
 	client.settings.defer;
 
 	logger.log('info', client.settings.size+' keys loaded');
@@ -164,7 +167,7 @@ client.on('message', message => {
 				data.push(client.guildSettings.map(setting => setting.name).join(', '));
 				data.push('\nUse '+client.settings.get(message.guild.id, 'prefix')+'settings <setting> to see more details```');
 
-				logger.log('info,', 'Returned settingslist to '+message.author.username+' ('+message.author.id+')');
+				logger.log('info', 'Returned settingslist to '+message.author.username+' ('+message.author.id+')');
 
 				return message.channel.send(data, {split:true})
 			}
