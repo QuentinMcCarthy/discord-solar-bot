@@ -4,7 +4,7 @@ module.exports = {
 	usage: '<command>',
 	cooldown: 2,
 	admin: true,
-	execute(client, message, args) {
+	execute(client, logger, message, args) {
 		// Need to specify a command to reload
 		if (!args.length) {
 			return message.channel.send('You didn\'t pass any command to reload');
@@ -28,10 +28,9 @@ module.exports = {
 
 			message.channel.send(command.name+' successfully reloaded');
 
-			console.log('Reloaded '+command.name);
+			logger.log('info', 'Reloaded '+command.name);
 		} catch (err) {
-			console.log(err);
-			console.log('Failed to reload '+command.name);
+			logger.log('error', err);
 
 			message.channel.send('There was an error while reloading the command, '+command.name+'; \n'+err.message);
 		}

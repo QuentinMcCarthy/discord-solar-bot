@@ -5,7 +5,7 @@ module.exports = {
 	description: 'Lists all commands and info on specific commands',
 	usage: '[command]',
 	cooldown: 1,
-	execute(client, message, args) {
+	execute(client, logger, message, args) {
 		const data = [];
 		const {commands} = client;
 
@@ -15,7 +15,7 @@ module.exports = {
 			data.push(commands.map(command => command.name).join(', '));
 			data.push('\nUse '+client.settings.get(message.guild.id, 'prefix')+'help <command> to see more details```');
 
-			console.log('Returned commandlist to '+message.author.username+' ('+message.author.id+')');
+			logger.log('info', 'Returned commandlist to '+message.author.username+' ('+message.author.id+')');
 
 			return message.channel.send(data, {split:true})
 		}
@@ -25,7 +25,7 @@ module.exports = {
 
 		// If the command doesn't exist, return an error
 		if (!command) {
-			console.log('Returned nocmd to '+message.author.username+' ('+message.author.id+')');
+			logger.log('info', 'Returned nocmd to '+message.author.username+' ('+message.author.id+')');
 
 			return message.channel.send('Unrecognized command. Use '+client.settings.get(message.guild.id, 'prefix')+'help to see a list of commands and their usage')
 		}
@@ -42,6 +42,6 @@ module.exports = {
 
 		message.channel.send(data, {split:true});
 
-		console.log('Returned '+command.name+'help to '+message.author.username+' ('+message.author.id+')');
+		logger.log('info', 'Returned '+command.name+'help to '+message.author.username+' ('+message.author.id+')');
 	},
 }

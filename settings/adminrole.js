@@ -4,7 +4,7 @@ module.exports = {
 	name: 'adminrole',
 	description: 'Set the Admin role for bot commands. New role must already exist',
 	usage: '<newRole>',
-	execute(client, message, args) {
+	execute(client, logger, message, args) {
 		if (args[0]) {
 			let isRoleValid = message.guild.roles.cache.some(role => role.name === args[0]);
 
@@ -18,11 +18,11 @@ module.exports = {
 
 			message.channel.send('New adminrole set as: '+args[0]);
 
-			console.log('Returned adminroleset to '+message.author.username+' ('+message.author.id+')');
+			logger.log('info', 'Returned adminroleset to '+message.author.username+' ('+message.author.id+')');
 		} else {
 			message.channel.send('```Setting: adminrole\nUsage: '+client.settings.get(message.guild.id, 'prefix')+'settings adminrole <newRole>\nSet the Admin role for bot commands. New role must already exist```');
 
-			console.log('Returned adminrolehelp to '+message.author.username+' ('+message.author.id+')');
+			logger.log('info', 'Returned adminrolehelp to '+message.author.username+' ('+message.author.id+')');
 		}
 	},
 }

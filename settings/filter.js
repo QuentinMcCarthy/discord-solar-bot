@@ -4,7 +4,7 @@ module.exports = {
 	name: 'filter',
 	description: 'Add/remove words from the filter list, or list all filter words, or clear the filter list to disable the filter, or change the response.',
 	usage: '<list/add/remove/clear/response> [word/phrase]',
-	execute(client, message, args) {
+	execute(client, logger, message, args) {
 		if (args[0] == 'list') {
 			if (client.settings.has(message.guild.id, 'filter.list')) {
 				let returnList = 'Filtered Words/Phrases:';
@@ -15,11 +15,11 @@ module.exports = {
 
 				message.channel.send('```'+returnList+'```');
 
-				console.log('Returned filterlist to '+message.author.username+' ('+message.author.id+')');
+				logger.log('info', 'Returned filterlist to '+message.author.username+' ('+message.author.id+')');
 			} else {
 				message.channel.send('```Filter Words/Phrases:```');
 
-				console.log('Returned filterlist to '+message.author.username+' ('+message.author.id+')');
+				logger.log('info', 'Returned filterlist to '+message.author.username+' ('+message.author.id+')');
 			}
 		} else if (args[0] == 'add') {
 			let phrase = args[1];
@@ -47,17 +47,17 @@ module.exports = {
 				if (client.settings.has(message.guild.id, 'filter.list')) {
 					client.settings.push(message.guild.id, phrase, 'filter.list')
 				} else {
-					console.log("List getting cleared");
+					logger.log('info', "List getting cleared");
 					client.settings.set(message.guild.id, [phrase], 'filter.list')
 				}
 
 				message.channel.send('Added "'+phrase+'" to filter list');
 
-				console.log('Returned filteradd to '+message.author.username+' ('+message.author.id+')');
+				logger.log('info', 'Returned filteradd to '+message.author.username+' ('+message.author.id+')');
 			} else {
 				message.channel.send('```Setting: filter\nUsage: '+client.settings.get(message.guild.id, 'prefix')+'settings filter <list/add/remove/clear> [word/phrase]\nAdd/remove words from the filter list, or list all filter words, or clear the filter list to disable the filter.```');
 
-				console.log('Returned filteraddfail to '+message.author.username+' ('+message.author.id+')');
+				logger.log('info', 'Returned filteraddfail to '+message.author.username+' ('+message.author.id+')');
 			}
 		} else if (args[0] == 'remove') {
 			let term = args[1];
@@ -95,7 +95,7 @@ module.exports = {
 
 						client.settings.remove(message.guild.id, removed, 'filter.list');
 
-						console.log('Returned filterremove to '+message.author.username+' ('+message.author.id+')');
+						logger.log('info', 'Returned filterremove to '+message.author.username+' ('+message.author.id+')');
 					} else {
 						let removed = '';
 
@@ -113,17 +113,17 @@ module.exports = {
 						if (removed == '') {
 							message.channel.send(term+' was not found in the list');
 
-							console.log('Returned filterremovefail to '+message.author.username+' ('+message.author.id+')');
+							logger.log('info', 'Returned filterremovefail to '+message.author.username+' ('+message.author.id+')');
 						} else {
 							message.channel.send('Removed '+removed+' from the filter list');
 
-							console.log('Returned filterremove to '+message.author.username+' ('+message.author.id+')');
+							logger.log('info', 'Returned filterremove to '+message.author.username+' ('+message.author.id+')');
 						}
 					}
 				} else {
 					message.channel.send('There are no words being filtered');
 
-					console.log('Returned filterremovefail to '+message.author.username+' ('+message.author.id+')');
+					logger.log('info', 'Returned filterremovefail to '+message.author.username+' ('+message.author.id+')');
 				}
 			}
 		} else if (args[0] == 'clear') {
@@ -132,7 +132,7 @@ module.exports = {
 
 			message.channel.send('Filter list cleared');
 
-			console.log('Returned filterclear to '+message.author.username+' ('+message.author.id+')');
+			logger.log('info', 'Returned filterclear to '+message.author.username+' ('+message.author.id+')');
 		} else if (args[0] == 'response') {
 			let newResponse = args[1];
 
@@ -159,12 +159,12 @@ module.exports = {
 
 				message.channel.send('Filter response set as: "'+newResponse+'"');
 
-				console.log('Returned filterresponse to '+message.author.username+' ('+message.author.id+')');
+				logger.log('info', 'Returned filterresponse to '+message.author.username+' ('+message.author.id+')');
 			}
 		} else {
 			message.channel.send('```Setting: filter\nUsage: '+client.settings.get(message.guild.id, 'prefix')+'settings filter <list/add/remove/clear/response> [word/phrase/id]\nAdd/remove words from the filter list, or list all filter words, or clear the filter list to disable the filter. Response is customisable.```');
 
-			console.log('Returned filterhelp to '+message.author.username+' ('+message.author.id+')');
+			logger.log('info', 'Returned filterhelp to '+message.author.username+' ('+message.author.id+')');
 		}
 	},
 }

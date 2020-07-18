@@ -2,7 +2,17 @@ const Discord = require('discord.js');
 const fs = require('fs');
 const Enmap = require('enmap');
 const client = new Discord.Client();
+const winston = require('winston');
 const {token, perms} = require('./auth.json');
+
+// Logging
+const logger = winston.createLogger({
+	transports: [
+		new winston.transports.Console(),
+		new winston.transports.File({ filename: 'log.log' }),
+	],
+	format: winston.format.printf(log => '['+log.level.toUpperCase()+'] - '+log.message),
+});
 
 // Enmap initialisation
 client.settings = new Enmap({
@@ -50,9 +60,12 @@ const cooldowns = new Discord.Collection();
 
 // Bot startup
 client.once('ready', () => {
+	let todayDate = new Date();
+	logger.log('info', todayDate.getDate()+'/'+todayDate.getMonth()+'/'+todayDate.getFullYear())
+
 	client.settings.defer;
 
-	console.log(client.settings.size+' keys loaded');
+	logger.log('info', client.settings.size+' keys loaded');
 
 	// Ensure each guild has a settings entry
 	// If a settings entry is not found,
@@ -60,10 +73,10 @@ client.once('ready', () => {
 	client.guilds.cache.forEach(guild => {
 		client.settings.ensure(guild.id, defaultSettings);
 
-		console.log('Settings loaded for '+guild.name);
+		logger.log('info', 'Settings loaded for '+guild.name);
 	});
 
-	console.log('\n'+client.user.username+' loaded and logged in\n');
+	logger.log('info', client.user.username+' loaded and logged in');
 });
 
 client.on('guildDelete', guild => {
@@ -90,7 +103,7 @@ client.on('message', message => {
 
 				client.settings.set(guildID, client.settings.get(guildID, 'channels.'+channelID+'.creminder.delay', 'channels.'+channelID+'.creminder.current'));
 
-				console.log('Reminded users in '+channelID);
+				logger.log('info', 'Reminded users in '+channelID);
 			} else {
 				client.settings.set(guildID, client.settings.get(guildID, 'channels.'+channelID+'.creminder.current')-1, 'channels.'+channelID+'.creminder.current');
 			}
@@ -125,7 +138,7 @@ client.on('message', message => {
 
 			if (now < expirationTime) {
 				const timeLeft = (expirationTime - now / 1000);
-				return console.log(message.author.username+' attempted to use '+command.name+' but it was on cooldown');
+				return logger.log('info', message.author.username+' attempted to use '+command.name+' but it was on cooldown');
 			}
 		}
 
@@ -154,7 +167,7 @@ client.on('message', message => {
 				data.push(client.guildSettings.map(setting => setting.name).join(', '));
 				data.push('\nUse '+client.settings.get(message.guild.id, 'prefix')+'settings <setting> to see more details```');
 
-				console.log('Returned settingslist to '+message.author.username+' ('+message.author.id+')');
+				logger.log('info', 'Returned settingslist to '+message.author.username+' ('+message.author.id+')');
 
 				return message.channel.send(data, {split:true})
 			}
@@ -164,7 +177,7 @@ client.on('message', message => {
 
 			// If the setting doesn't exist, return an error
 			if (!setting) {
-				console.log('Returned nosetting to '+message.author.username+' ('+message.author.id+')');
+				logger.log('info', 'Returned nosetting to '+message.author.username+' ('+message.author.id+')');
 
 				return message.channel.send('No such setting. Use '+client.settings.get(message.guild.id, 'prefix')+'settings to see a list of settings and their usage')
 			}
@@ -183,14 +196,14 @@ client.on('message', message => {
 
 				message.channel.send(data, {split:true});
 
-				console.log('Returned '+setting.name+'help to '+message.author.username+' ('+message.author.id+')');
+				logger.log('info', 'Returned '+setting.name+'help to '+message.author.username+' ('+message.author.id+')');
 			} else {
 				args.splice(0, 1);
 
 				try {
-					setting.execute(client, message, args);
+					setting.execute(client, logger, message, args);
 				} catch (err) {
-					console.log(err);
+					logger.log('error', err);
 
 					message.channel.send('An error occurred: '+err.message);
 				}
@@ -198,9 +211,9 @@ client.on('message', message => {
 		} else {
 			// Dynamic command execution
 			try {
-				command.execute(client, message, args);
+				command.execute(client, logger, message, args);
 			} catch (err) {
-				console.log(err);
+				logger.log('error', err);
 
 				message.channel.send('Unrecognized command. Use '+client.settings.get(guildID, 'prefix')+'help to see a list of commands and their usage');
 
@@ -211,7 +224,7 @@ client.on('message', message => {
 		if (message.content.split(' ')[1] == 'help') {
 			message.channel.send(client.settings.get(guildID, 'prefix')+' is the prefix for the bot. To see the commands list use '+client.settings.get(guildID, 'prefix')+'help');
 
-			console.log('Returned mentionhelp to '+message.author.username+' ('+message.author.id+')');
+			logger.log('info', 'Returned mentionhelp to '+message.author.username+' ('+message.author.id+')');
 		}
 	} else if (client.settings.has(guildID, 'filter.list')) {
 		let toFilter = message.content.toLowerCase();
