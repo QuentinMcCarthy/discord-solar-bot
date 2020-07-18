@@ -4,7 +4,7 @@ module.exports = {
 	cooldown: 2,
 	usage: '[setting]',
 	admin: true,
-	execute(client, message, args) {
+	execute(client, logger, message, args) {
 		// If this file does not exist in the commands folder
 		// The command will not appear in the command list
 		// and the functions will not fire

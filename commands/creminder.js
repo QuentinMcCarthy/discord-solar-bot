@@ -6,7 +6,7 @@ module.exports = {
 	usage: '<message/off> [delay]',
 	cooldown: 2,
 	admin: true,
-	execute(client, message, args) {
+	execute(client, logger, message, args) {
 		const guildID = message.guild.id;
 		var rtrn = '';
 
@@ -67,6 +67,6 @@ module.exports = {
 			rtrn = 'creminderex';
 		}
 
-		console.log('Returned '+rtrn+' to '+message.author.username+' ('+message.author.id+')');
+		logger.log('info', 'Returned '+rtrn+' to '+message.author.username+' ('+message.author.id+')');
 	},
 };
