@@ -145,7 +145,7 @@ client.on('message', message => {
 		timestamps.set(message.author.id, now);
 		setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
 
-		// Check the command's role.
+		// restrict commands to specific users
 		if (command.admin) {
 			// Only those with the adminrole
 			// Or the server owner can use admin flagged commands
@@ -157,6 +157,17 @@ client.on('message', message => {
 
 			if (!isAdmin && !isOwner && !isDev) {
 				message.channel.send('This command can only be used by Admins');
+
+				return;
+			}
+		}
+
+		if (command.dev) {
+			// Only the dev can use dev flagged commands
+			let isDev = message.member.id === devid;
+
+			if (!isDev) {
+				message.channel.send('This command can only be used by the developer');
 
 				return;
 			}
