@@ -22,5 +22,4 @@ const defaultSettings = {
 }
 
 // db.set('722768991273353246', defaultSettings);
-// console.log(db.get('722768991273353246'));
-db.set('722768991273353246', 'test', 'channels');
+console.log(db.get('722768991273353246'));

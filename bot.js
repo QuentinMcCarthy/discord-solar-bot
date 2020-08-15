@@ -98,14 +98,16 @@ client.on('message', message => {
 	// Creminder countdown
 	if (client.settings.has(guildID, 'channels.'+channelID)) {
 		if (client.settings.get(guildID, 'channels.'+channelID+'.creminder.delay') > 0 && message.content.length > 0) {
-			if (client.settings.get(guildID, 'channels.'+channelID+'.creminder.current') - 1 <= 0) {
+			let deductTimer = (client.settings.get(guildID, 'channels.'+channelID+'.creminder.current')-1)
+
+			if (deductTimer <= 0) {
 				message.channel.send(client.settings.get(guildID, 'channels.'+channelID+'.creminder.message'));
 
-				client.settings.set(guildID, client.settings.get(guildID, 'channels.'+channelID+'.creminder.delay', 'channels.'+channelID+'.creminder.current'));
+				client.settings.set(guildID, client.settings.get(guildID, 'channels.'+channelID+'.creminder.delay'), 'channels.'+channelID+'.creminder.current');
 
 				logger.log('info', 'Reminded users in '+channelID);
 			} else {
-				client.settings.set(guildID, client.settings.get(guildID, 'channels.'+channelID+'.creminder.current')-1, 'channels.'+channelID+'.creminder.current');
+				client.settings.set(guildID, deductTimer, 'channels.'+channelID+'.creminder.current');
 			}
 		}
 	}
