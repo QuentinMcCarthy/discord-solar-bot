@@ -31,9 +31,7 @@ const defaultSettings = {
 		list: [],
 		response: 'Please don\'t use banned words'
 	},
-	keywords: {
-		add: [],
-		remove: []
+	keyphrases: {
 	}
 }
 
