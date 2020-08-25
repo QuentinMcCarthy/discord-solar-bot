@@ -62,12 +62,21 @@ module.exports = {
                     phrase = phrase.replace(/"/g, '');
 
                     if (args[2] == 'add') {
-                        if (client.settings.has(message.guild.id, 'keywords.add')) {
-                            client.settings.push(message.guild.id, phrase, 'keywords.add');
+                        if (guild.roles.cache.some(role => role.name === args[3])) {
+                            let obj = {phrase: phrase, add: args[2]};
+
+                            if (client.settings.has(message.guild.id, 'keyphrases')) {
+                                client.settings.push(message.guild.id, obj, 'keyphrases');
+                            } else {
+                                logger.log('info', 'Keyphrases list being created');
+                                client.settings.set(message.guild.id, [obj], 'keyphrases');
+                            }
                         } else {
-                            logger.log('info', 'Keyword add list being created');
-                            client.settings.set(message.guild.id, [phrase], 'keywords.add');
+                            logger.log('info', 'Returned keyphraseaddfail to ' + message.author.username + ' (' + message.author.id + ')')
+                            message.channel.send("That role doesn't exist");
                         }
+
+                        // Working here
 
 
                     } else if (args[2] == 'remove') {
