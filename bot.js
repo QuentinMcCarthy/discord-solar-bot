@@ -31,8 +31,7 @@ const defaultSettings = {
 		list: [],
 		response: 'Please don\'t use banned words'
 	},
-	keyphrases: {
-	}
+	keyphrases: []
 }
 
 // Dynamic command files

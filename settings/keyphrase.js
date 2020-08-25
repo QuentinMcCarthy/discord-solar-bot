@@ -9,31 +9,18 @@ module.exports = {
             if (client.settings.has(message.guild.id, 'keyphrases')) {
                 let returnList = 'Keyphrases:';
 
-                if (client.settings.has(message.guild.id, 'keyphrases')) {
-                    client.settings.get(message.guild.id, 'keyphrases').forEach(keyphrase => {
-                        if (keyphrase.add) {
-                            returnList += `\n${keyphrase.phrase}: Adds ${keyphrase.add}`;
-                        } else if (keyphrase.remove) {
-                            returnList += `\n${keyphrase.phrase}: Removes ${keyphrase.remove}`;
-                        } else {
-                            logger.log('error', 'Keyphrase "'+keyphrase.phrase+'" has no add/remove!');
-                        }
-                    });
-                }
+                for (var i = 0; i < client.settings.get(message.guild.id, 'keyphrases').length; i++) {
+                    let phrase = client.settings.get(message.guild.id, 'keyphrases')[i].phrase;
+                    let add = client.settings.get(message.guild.id, 'keyphrases')[i].add;
+                    let remove = client.settings.get(message.guild.id, 'keyphrases')[i].remove;
 
-                // Working here
-
-                if (client.settings.has(message.guild.id, 'keywords.add')) {
-                    for (var i = 0; i < client.settings.get(message.guild.id, 'keywords.add').length; i++) {
-                        returnList += '\n' + (i + 1) + '. ' + client.settings.get(message.guild.id, 'keywords.add')[i];
-                    }
-                }
-
-                returnList += '\n\nRemove:';
-
-                if (client.settings.has(message.guild.id, 'keywords.remove')) {
-                    for (var i = 0; i < client.settings.get(message.guild.id, 'keywords.remove').length; i++) {
-                        returnList += '\n' + (i + 1) + '. ' + client.settings.get(message.guild.id, 'keywords.remove')[i];
+                    if (add) {
+                        returnList += `\n${phrase}: Adds '${add}'`;
+                    } else if (remove) {
+                        returnList += `\n${phrase}: Removes '${remove}'`;
+                    } else {
+                        returnList += `\n${phrase}: ERR_NO_ENTRY`;
+                        logger.log('error', 'Keyphrase "' + keyphrase.phrase + '" has no add/remove!');
                     }
                 }
 
@@ -41,7 +28,7 @@ module.exports = {
 
                 logger.log('info', 'Returned filterlist to ' + message.author.username + ' (' + message.author.id + ')');
             } else {
-                message.channel.send('```Keywords:\nAdd:\n\nRemove:```');
+                message.channel.send('```Keyphrases:```');
 
                 logger.log('info', 'Returned filterlist to ' + message.author.username + ' (' + message.author.id + ')');
             }
