@@ -18,7 +18,8 @@ const defaultSettings = {
     filter: {
         list: [],
         response: 'Please don\'t use banned words'
-    }
+    },
+    keyphrases: []
 }
 
 // db.set('722768991273353246', defaultSettings);
