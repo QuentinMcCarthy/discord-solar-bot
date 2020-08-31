@@ -36,7 +36,7 @@ module.exports = {
             let phrase = args[1];
 
             if (phrase) {
-                phrase = phrase.toLowerCase();
+                phrase = phrase;
 
                 let hasQuotes = false;
                 let endingArg = 1;
