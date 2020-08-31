@@ -16,7 +16,7 @@ module.exports = {
 
 			// Find the full string if there's a quotation
 			if (crmessage.substring(0, 1) == '"' && crmessage.substring(crmessage.length-1) != '"') {
-				for (var i = 2; i < args.length; i++) {
+				for (var i = 1; i < args.length; i++) {
 					if (args[i].substring(args[i].length-1) == '"') {
 						crmessage += ' '+args[i];
 						crdelay = args[i+1];
