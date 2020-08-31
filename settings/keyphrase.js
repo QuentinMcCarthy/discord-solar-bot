@@ -10,7 +10,7 @@ module.exports = {
                 let returnList = 'Keyphrases:';
 
                 for (var i = 0; i < client.settings.get(message.guild.id, 'keyphrases').length; i++) {
-                    let phrase = i+'. '+client.settings.get(message.guild.id, 'keyphrases')[i].phrase;
+                    let phrase = (i+1)+'. '+client.settings.get(message.guild.id, 'keyphrases')[i].phrase;
                     let add = client.settings.get(message.guild.id, 'keyphrases')[i].add;
                     let remove = client.settings.get(message.guild.id, 'keyphrases')[i].remove;
 
@@ -26,11 +26,11 @@ module.exports = {
 
                 message.channel.send('```' + returnList + '```');
 
-                logger.log('info', 'Returned filterlist to ' + message.author.username + ' (' + message.author.id + ')');
+                logger.log('info', 'Returned keyphraselist to ' + message.author.username + ' (' + message.author.id + ')');
             } else {
                 message.channel.send('```Keyphrases:```');
 
-                logger.log('info', 'Returned filterlist to ' + message.author.username + ' (' + message.author.id + ')');
+                logger.log('info', 'Returned keyphraselist to ' + message.author.username + ' (' + message.author.id + ')');
             }
         } else if (args[0] == 'add') {
             let phrase = args[1];
@@ -65,132 +65,119 @@ module.exports = {
                     phrase = phrase.replace(/"/g, '');
 
                     if (args[endingArg+1] == 'add') {
-                        let roleName = args[endingArg + 2];
+                        if (args[endingArg + 2]) {
+                            let roleName = args[endingArg + 2];
 
-                        if (args[endingArg + 2].substring(0, 1) == '"' && args[endingArg + 2].substring(args[endingArg + 2].length - 1) != '"') {
-                            for (var i = endingArg+3; i < args.length; i++) {
-                                if (args[i].substring(args[i].length - 1) == '"') {
-                                    roleName += ' ' + args[i];
-                                    
-                                    endingArg = i;
+                            if (args[endingArg + 2].substring(0, 1) == '"' && args[endingArg + 2].substring(args[endingArg + 2].length - 1) != '"') {
+                                for (var i = endingArg + 3; i < args.length; i++) {
+                                    if (args[i].substring(args[i].length - 1) == '"') {
+                                        roleName += ' ' + args[i];
 
-                                    break;
-                                } else {
-                                    phrase += ' ' + args[i];
+                                        endingArg = i;
+
+                                        break;
+                                    } else {
+                                        phrase += ' ' + args[i];
+                                    }
                                 }
                             }
-                        }
 
-                        if (guild.roles.cache.some(role => role.name === roleName)) {
-                            let obj = {phrase: phrase, add: roleName};
+                            if (message.guild.roles.cache.some(role => role.name === roleName)) {
+                                let obj = { phrase: phrase, add: roleName };
 
-                            if (client.settings.has(message.guild.id, 'keyphrases')) {
-                                client.settings.push(message.guild.id, obj, 'keyphrases');
+                                if (client.settings.has(message.guild.id, 'keyphrases')) {
+                                    client.settings.push(message.guild.id, obj, 'keyphrases');
+                                } else {
+                                    logger.log('info', 'Keyphrases list being created');
+                                    client.settings.set(message.guild.id, [obj], 'keyphrases');
+                                }
+
+                                message.channel.send(`Phrase "${phrase}" will give role "${roleName}"`);
                             } else {
-                                logger.log('info', 'Keyphrases list being created');
-                                client.settings.set(message.guild.id, [obj], 'keyphrases');
+                                logger.log('info', 'Returned keyphraseaddfail to ' + message.author.username + ' (' + message.author.id + ')')
+                                message.channel.send("That role doesn't exist");
                             }
                         } else {
-                            logger.log('info', 'Returned keyphraseaddfail to ' + message.author.username + ' (' + message.author.id + ')')
-                            message.channel.send("That role doesn't exist");
+                            message.channel.send('```Setting: keyphrase\nUsage: ' + client.settings.get(message.guild.id, 'prefix') + 'settings keyphrase <list/add/remove> "[keyphrase]" [add/remove] [role]\nSet keyphrases to add/remove roles from users.```');
+
+                            logger.log('info', 'Returned keyphraseaddfail to ' + message.author.username + ' (' + message.author.id + ')');
                         }
-                        // Working here
                     } else if (args[2] == 'remove') {
-                        let roleName = args[endingArg + 2];
+                        if (args[endingArg + 2]) {
+                            let roleName = args[endingArg + 2];
 
-                        if (args[endingArg + 2].substring(0, 1) == '"' && args[endingArg + 2].substring(args[endingArg + 2].length - 1) != '"') {
-                            for (var i = endingArg + 3; i < args.length; i++) {
-                                if (args[i].substring(args[i].length - 1) == '"') {
-                                    roleName += ' ' + args[i];
+                            if (args[endingArg + 2].substring(0, 1) == '"' && args[endingArg + 2].substring(args[endingArg + 2].length - 1) != '"') {
+                                for (var i = endingArg + 3; i < args.length; i++) {
+                                    if (args[i].substring(args[i].length - 1) == '"') {
+                                        roleName += ' ' + args[i];
 
-                                    endingArg = i;
+                                        endingArg = i;
 
-                                    break;
-                                } else {
-                                    phrase += ' ' + args[i];
+                                        break;
+                                    } else {
+                                        phrase += ' ' + args[i];
+                                    }
                                 }
                             }
-                        }
 
-                        if (guild.roles.cache.some(role => role.name === roleName)) {
-                            let obj = {phrase: phrase, remove: roleName};
+                            if (message.guild.roles.cache.some(role => role.name === roleName)) {
+                                let obj = {phrase: phrase, remove: roleName};
 
-                            if (client.settings.has(message.guild.id, 'keyphrases')) {
-                                client.settings.push(message.guild.id, obj, 'keyphrases');
+                                if (client.settings.has(message.guild.id, 'keyphrases')) {
+                                    client.settings.push(message.guild.id, obj, 'keyphrases');
+                                } else {
+                                    logger.log('info', 'Keyphrases list being created');
+                                    client.settings.set(message.guild.id, [obj], 'keyphrases');
+                                }
+
+                                message.channel.send(`Phrase "${phrase}" will remove role "${roleName}"`);
                             } else {
-                                logger.log('info', 'Keyphrases list being created');
-                                client.settings.set(message.guild.id, [obj], 'keyphrases');
+                                logger.log('info', 'Returned keyphraseaddfail to ' + message.author.username + ' (' + message.author.id + ')')
+                                message.channel.send("That role doesn't exist");
                             }
                         } else {
-                            logger.log('info', 'Returned keyphraseaddfail to ' + message.author.username + ' (' + message.author.id + ')')
-                            message.channel.send("That role doesn't exist");
+                            message.channel.send('```Setting: keyphrase\nUsage: ' + client.settings.get(message.guild.id, 'prefix') + 'settings keyphrase <list/add/remove> "[keyphrase]" [add/remove] [role]\nSet keyphrases to add/remove roles from users.```');
+
+                            logger.log('info', 'Returned keyphraseaddfail to ' + message.author.username + ' (' + message.author.id + ')');
                         }
+                    } else {
+                        message.channel.send('```Setting: keyphrase\nUsage: ' + client.settings.get(message.guild.id, 'prefix') + 'settings keyphrase <list/add/remove> "[keyphrase]" [add/remove] [role]\nSet keyphrases to add/remove roles from users.```');
+
+                        logger.log('info', 'Returned keyphraseaddfail to ' + message.author.username + ' (' + message.author.id + ')');
                     }
+                } else {
+                    message.channel.send('```Setting: keyphrase\nUsage: ' + client.settings.get(message.guild.id, 'prefix') + 'settings keyphrase <list/add/remove> "[keyphrase]" [add/remove] [role]\nSet keyphrases to add/remove roles from users.```');
+
+                    logger.log('info', 'Returned keyphraseaddfail to ' + message.author.username + ' (' + message.author.id + ')');
                 }
             } else {
-                message.channel.send('```Setting: filter\nUsage: ' + client.settings.get(message.guild.id, 'prefix') + 'settings filter <list/add/remove/clear> [word/phrase]\nAdd/remove words from the filter list, or list all filter words, or clear the filter list to disable the filter.```');
+                message.channel.send('```Setting: keyphrase\nUsage: ' + client.settings.get(message.guild.id, 'prefix') + 'settings keyphrase <list/add/remove> "[keyphrase]" [add/remove] [role]\nSet keyphrases to add/remove roles from users.```');
 
-                logger.log('info', 'Returned filteraddfail to ' + message.author.username + ' (' + message.author.id + ')');
+                logger.log('info', 'Returned keyphraseaddfail to ' + message.author.username + ' (' + message.author.id + ')');
             }
         } else if (args[0] == 'remove') {
             let term = args[1];
 
             if (term) {
-                // Find the full string if there's a quotation
-                if (args[1].substring(0, 1) == '"' && args[1].substring(args[1].length - 1) != '"') {
-                    for (var i = 2; i < args.length; i++) {
-                        if (args[i].substring(args[i].length - 1) == '"') {
-                            term += ' ' + args[i];
-
-                            break;
-                        } else {
-                            term += ' ' + args[i];
-                        }
-                    }
-                }
-
-                // Remove quotes
-                term = term.replace(/"/g, '');
-
                 // Check if the list exists, if not, inform user
                 if (client.settings.has(message.guild.id, 'keyphrases')) {
-                    // Is the term a string or an number
                     if (parseInt(term, 10) > 0) {
-                        term = parseInt(term, 10);
+                        term = parseInt(term, 10)-1;
 
                         let tempList = client.settings.get(message.guild.id, 'keyphrases');
 
                         // Remove the given index from the array
                         let removed = tempList.splice(term, 1);
 
-                        message.channel.send('Removed ' + removed + ' from the keyphrase list');
+                        message.channel.send('Successfully removed keyphrase with index '+(term+1)+' from the keyphrase list');
 
                         client.settings.remove(message.guild.id, removed, 'keyphrases');
 
                         logger.log('info', 'Returned keyphraseremove to ' + message.author.username + ' (' + message.author.id + ')');
                     } else {
-                        let removed = '';
+                        message.channel.send('Please specify an index to remove');
 
-                        // Find and remove the entry from the array
-                        for (var i = 0; i < client.settings.get(message.guild.id, 'keyphrases').length; i++) {
-                            if (client.settings.get(message.guild.id, 'keyphrases')[i] == term) {
-                                removed = client.settings.get(message.guild.id, 'keyphrases')[i];
-
-                                client.settings.remove(message.guild.id, removed, 'keyphrases');
-
-                                break;
-                            }
-                        }
-
-                        if (removed == '') {
-                            message.channel.send(term + ' was not found in the list');
-
-                            logger.log('info', 'Returned keyphraseremovefail to ' + message.author.username + ' (' + message.author.id + ')');
-                        } else {
-                            message.channel.send('Removed ' + removed + ' from the keyphrase list');
-
-                            logger.log('info', 'Returned keyphraseremove to ' + message.author.username + ' (' + message.author.id + ')');
-                        }
+                        logger.log('info', 'Returned keyphraseremovefail to ' + message.author.username + ' (' + message.author.id + ')');
                     }
                 } else {
                     message.channel.send('There are no keyphrases');
