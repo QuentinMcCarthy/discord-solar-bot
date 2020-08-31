@@ -112,7 +112,7 @@ client.on('message', message => {
 			}
 		}
 	}
-
+	
 	// Listen for messages that start with the prefix, or if the bot is mentioned
 	if (message.content.startsWith(client.settings.get(guildID, 'prefix'))) {
 		const args = message.content.slice(client.settings.get(guildID, 'prefix').length).split(/ +/);
@@ -244,14 +244,46 @@ client.on('message', message => {
 
 			logger.log('info', 'Returned mentionhelp to '+message.author.username+' ('+message.author.id+')');
 		}
-	} else if (client.settings.has(guildID, 'filter.list')) {
-		let toFilter = message.content.toLowerCase();
+	} else if (message.guild.me.hasPermission('MANAGE_MESSAGES')){
+		if (client.settings.has(guildID, 'filter.list')) {
+			let toFilter = message.content.toLowerCase();
 
-		for (var i = 0; i < client.settings.get(guildID, 'filter.list').length; i++) {
-			if (toFilter.includes(client.settings.get(guildID, 'filter.list')[i])) {
-				message.delete();
+			for (var i = 0; i < client.settings.get(guildID, 'filter.list').length; i++) {
+				if (toFilter.includes(client.settings.get(guildID, 'filter.list')[i])) {
+					message.delete();
 
-				message.channel.send(client.settings.get(guildID, 'filter.response'));
+					message.channel.send(client.settings.get(guildID, 'filter.response'));
+				}
+			}
+		}
+
+		if (client.settings.has(guildID, 'keyphrases') && message.guild.me.hasPermission('MANAGE_ROLES')) {
+			let toFilter = message.content;
+
+			for (var i = 0; i < client.settings.get(guildID, 'keyphrases').length; i++) {
+				if (toFilter == client.settings.get(guildID, 'keyphrases')[i].phrase) {
+					message.delete();
+
+					if (client.settings.get(guildID, 'keyphrases')[i].add && !message.member.roles.cache.some(role => role.name === client.settings.get(guildID, 'keyphrases')[i].add)) {
+						let role = message.guild.roles.cache.find(role => role.name === client.settings.get(guildID, 'keyphrases')[i].add)
+
+						message.member.roles.add(role);
+
+						logger.log('info', 'Gave role to ' + message.author.username + ' (' + message.author.id + ')');
+
+						message.channel.send('You\'ve been given the ' + client.settings.get(guildID, 'keyphrases')[i].add + ' role');
+					} else if (client.settings.get(guildID, 'keyphrases')[i].remove && message.member.roles.cache.some(role => role.name === client.settings.get(guildID, 'keyphrases')[i].remove)) {
+						let role = message.guild.roles.cache.find(role => role.name === client.settings.get(guildID, 'keyphrases')[i].remove)
+
+						message.member.roles.remove(role);
+
+						logger.log('info', 'Removed role from ' + message.author.username + ' (' + message.author.id + ')');
+
+						message.channel.send('You\'ve had the ' + client.settings.get(guildID, 'keyphrases')[i].remove + ' role taken away');
+					} else {
+						logger.log('error', 'Attempted to alter roles of ' + message.author.username + ' (' + message.author.id + ') but failed');
+					}
+				}
 			}
 		}
 	}
