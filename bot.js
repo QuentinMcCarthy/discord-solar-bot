@@ -271,7 +271,7 @@ client.on('message', message => {
 
 						logger.log('info', 'Gave role to ' + message.author.username + ' (' + message.author.id + ')');
 
-						message.channel.send('You\'ve been given the ' + client.settings.get(guildID, 'keyphrases')[i].add + ' role');
+						message.reply('you\'ve been given the ' + client.settings.get(guildID, 'keyphrases')[i].add + ' role');
 					} else if (client.settings.get(guildID, 'keyphrases')[i].remove && message.member.roles.cache.some(role => role.name === client.settings.get(guildID, 'keyphrases')[i].remove)) {
 						let role = message.guild.roles.cache.find(role => role.name === client.settings.get(guildID, 'keyphrases')[i].remove)
 
@@ -279,7 +279,7 @@ client.on('message', message => {
 
 						logger.log('info', 'Removed role from ' + message.author.username + ' (' + message.author.id + ')');
 
-						message.channel.send('You\'ve had the ' + client.settings.get(guildID, 'keyphrases')[i].remove + ' role taken away');
+						message.reply('you\'ve had the ' + client.settings.get(guildID, 'keyphrases')[i].remove + ' role taken away');
 					} else {
 						logger.log('error', 'Attempted to alter roles of ' + message.author.username + ' (' + message.author.id + ') but failed');
 					}
