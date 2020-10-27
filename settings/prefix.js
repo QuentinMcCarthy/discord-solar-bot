@@ -10,7 +10,7 @@ module.exports = {
 
 			logger.log('info', 'Returned prefixset to '+message.author.username+' ('+message.author.id+')');
 		} else {
-			message.channel.send('```Setting: prefix\nUsage: '+client.settings.get(guildID, 'prefix')+'settings prefix <newPrefix>\nSet the prefix for bot commands```');
+			message.channel.send(`\`\`\`Setting: ${this.name}\nUsage: ${client.settings.get(message.guild.id, 'prefix')}settings ${this.name} ${this.usage}\n${this.description}\`\`\``);
 
 			logger.log('info', 'Returned prefixhelp to '+message.author.username+' ('+message.author.id+')');
 		}

@@ -98,7 +98,7 @@ module.exports = {
                                 message.channel.send("That role doesn't exist");
                             }
                         } else {
-                            message.channel.send('```Setting: keyphrase\nUsage: ' + client.settings.get(message.guild.id, 'prefix') + 'settings keyphrase <list/add/remove> "[keyphrase]" [add/remove] [role]\nSet keyphrases to add/remove roles from users.```');
+                            message.channel.send(`\`\`\`Setting: ${this.name}\nUsage: ${client.settings.get(message.guild.id, 'prefix')}settings ${this.name} ${this.usage}\n${this.description}\`\`\``);
 
                             logger.log('info', 'Returned keyphraseaddfail to ' + message.author.username + ' (' + message.author.id + ')');
                         }
@@ -136,22 +136,22 @@ module.exports = {
                                 message.channel.send("That role doesn't exist");
                             }
                         } else {
-                            message.channel.send('```Setting: keyphrase\nUsage: ' + client.settings.get(message.guild.id, 'prefix') + 'settings keyphrase <list/add/remove> "[keyphrase]" [add/remove] [role]\nSet keyphrases to add/remove roles from users.```');
+                            message.channel.send(`\`\`\`Setting: ${this.name}\nUsage: ${client.settings.get(message.guild.id, 'prefix')}settings ${this.name} ${this.usage}\n${this.description}\`\`\``);
 
                             logger.log('info', 'Returned keyphraseaddfail to ' + message.author.username + ' (' + message.author.id + ')');
                         }
                     } else {
-                        message.channel.send('```Setting: keyphrase\nUsage: ' + client.settings.get(message.guild.id, 'prefix') + 'settings keyphrase <list/add/remove> "[keyphrase]" [add/remove] [role]\nSet keyphrases to add/remove roles from users.```');
+                        message.channel.send(`\`\`\`Setting: ${this.name}\nUsage: ${client.settings.get(message.guild.id, 'prefix')}settings ${this.name} ${this.usage}\n${this.description}\`\`\``);
 
                         logger.log('info', 'Returned keyphraseaddfail to ' + message.author.username + ' (' + message.author.id + ')');
                     }
                 } else {
-                    message.channel.send('```Setting: keyphrase\nUsage: ' + client.settings.get(message.guild.id, 'prefix') + 'settings keyphrase <list/add/remove> "[keyphrase]" [add/remove] [role]\nSet keyphrases to add/remove roles from users.```');
+                    message.channel.send(`\`\`\`Setting: ${this.name}\nUsage: ${client.settings.get(message.guild.id, 'prefix')}settings ${this.name} ${this.usage}\n${this.description}\`\`\``);
 
                     logger.log('info', 'Returned keyphraseaddfail to ' + message.author.username + ' (' + message.author.id + ')');
                 }
             } else {
-                message.channel.send('```Setting: keyphrase\nUsage: ' + client.settings.get(message.guild.id, 'prefix') + 'settings keyphrase <list/add/remove> "[keyphrase]" [add/remove] [role]\nSet keyphrases to add/remove roles from users.```');
+                message.channel.send(`\`\`\`Setting: ${this.name}\nUsage: ${client.settings.get(message.guild.id, 'prefix')}settings ${this.name} ${this.usage}\n${this.description}\`\`\``);
 
                 logger.log('info', 'Returned keyphraseaddfail to ' + message.author.username + ' (' + message.author.id + ')');
             }

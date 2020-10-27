@@ -55,7 +55,7 @@ module.exports = {
 
 				logger.log('info', 'Returned filteradd to '+message.author.username+' ('+message.author.id+')');
 			} else {
-				message.channel.send('```Setting: filter\nUsage: '+client.settings.get(message.guild.id, 'prefix')+'settings filter <list/add/remove/clear> [word/phrase]\nAdd/remove words from the filter list, or list all filter words, or clear the filter list to disable the filter.```');
+				message.channel.send(`\`\`\`Setting: ${this.name}\nUsage: ${client.settings.get(message.guild.id, 'prefix')}settings ${this.name} ${this.usage}\n${this.description}\`\`\``);
 
 				logger.log('info', 'Returned filteraddfail to '+message.author.username+' ('+message.author.id+')');
 			}
@@ -162,7 +162,7 @@ module.exports = {
 				logger.log('info', 'Returned filterresponse to '+message.author.username+' ('+message.author.id+')');
 			}
 		} else {
-			message.channel.send('```Setting: filter\nUsage: '+client.settings.get(message.guild.id, 'prefix')+'settings filter <list/add/remove/clear/response> [word/phrase/id]\nAdd/remove words from the filter list, or list all filter words, or clear the filter list to disable the filter. Response is customisable.```');
+			message.channel.send(`\`\`\`Setting: ${this.name}\nUsage: ${client.settings.get(message.guild.id, 'prefix')}settings ${this.name} ${this.usage}\n${this.description}\`\`\``);
 
 			logger.log('info', 'Returned filterhelp to '+message.author.username+' ('+message.author.id+')');
 		}

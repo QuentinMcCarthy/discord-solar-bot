@@ -30,14 +30,14 @@ module.exports = {
 			return message.channel.send('Unrecognized command. Use '+client.settings.get(message.guild.id, 'prefix')+'help to see a list of commands and their usage')
 		}
 
-		data.push('Command: '+command.name);
+		data.push(`\`\`\`Command: ${command.name}`);
 
 		// Return the command's usage
 		if (command.usage) {
-			data.push('Usage: '+client.settings.get(message.guild.id, 'prefix')+command.name+' '+command.usage);
+			data.push(`Usage: ${client.settings.get(message.guild.id, 'prefix')}${command.name} ${command.usage}`);
 		}
 		if (command.description) {
-			data.push(command.description);
+			data.push(`${command.description}\`\`\``);
 		}
 
 		message.channel.send(data, {split:true});

@@ -35,7 +35,7 @@ module.exports = {
 				message.channel.send('That role doesn\'t exist');
 			}
 		} else {
-			message.channel.send('```Setting: adminrole\nUsage: '+client.settings.get(message.guild.id, 'prefix')+'settings adminrole <newRole>\nSet the Admin role for bot commands. New role must already exist```');
+			message.channel.send(`\`\`\`Setting: ${this.name}\nUsage: ${client.settings.get(message.guild.id, 'prefix')}settings ${this.name} ${this.usage}\n${this.description}\`\`\``);
 
 			logger.log('info', 'Returned adminrolehelp to '+message.author.username+' ('+message.author.id+')');
 		}
