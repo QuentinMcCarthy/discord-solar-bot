@@ -13,7 +13,8 @@ module.exports = {
 		if (!args.length) {
 			data.push('```Commands:');
 			data.push(commands.map(command => command.name).join(', '));
-			data.push('\nUse '+client.settings.get(message.guild.id, 'prefix')+'help <command> to see more details```');
+			data.push('\nUse '+client.settings.get(message.guild.id, 'prefix')+'help <command> to see more details');
+			data.push('\nDiscord bot coded by Fenekku Kitsune for SolarDelton\nGit Repo: https://github.com/QuentinMcCarthy/discord-solar-bot```')
 
 			logger.log('info', 'Returned commandlist to '+message.author.username+' ('+message.author.id+')');
 
