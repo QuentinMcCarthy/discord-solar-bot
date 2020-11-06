@@ -238,21 +238,25 @@ client.on('message', message => {
 				rtrn = 'nocmd';
 			}
 		}
-	} else if (message.content.startsWith('<@!'+client.user.id+'>')) {
-		if (message.content.split(' ')[1] == 'help') {
-			message.channel.send(client.settings.get(guildID, 'prefix')+' is the prefix for the bot. To see the commands list use '+client.settings.get(guildID, 'prefix')+'help');
+	} else {
+		if (message.content.startsWith('<@!'+client.user.id+'>')) {
+			if (message.content.split(' ')[1] == 'help') {
+				message.channel.send(client.settings.get(guildID, 'prefix')+' is the prefix for the bot. To see the commands list use '+client.settings.get(guildID, 'prefix')+'help');
 
-			logger.log('info', 'Returned mentionhelp to '+message.author.username+' ('+message.author.id+')');
+				logger.log('info', 'Returned mentionhelp to '+message.author.username+' ('+message.author.id+')');
+			}
 		}
-	} else if (message.guild.me.hasPermission('MANAGE_MESSAGES')){
-		if (client.settings.has(guildID, 'filter.list')) {
-			let toFilter = message.content.toLowerCase();
+			
+		if (message.guild.me.hasPermission('MANAGE_MESSAGES')){
+			if (client.settings.has(guildID, 'filter.list')) {
+				let toFilter = message.content.toLowerCase();
 
-			for (var i = 0; i < client.settings.get(guildID, 'filter.list').length; i++) {
-				if (toFilter.includes(client.settings.get(guildID, 'filter.list')[i])) {
-					message.delete();
+				for (var i = 0; i < client.settings.get(guildID, 'filter.list').length; i++) {
+					if (toFilter.includes(client.settings.get(guildID, 'filter.list')[i])) {
+						message.delete();
 
-					message.channel.send(client.settings.get(guildID, 'filter.response'));
+						message.channel.send(client.settings.get(guildID, 'filter.response'));
+					}
 				}
 			}
 		}
