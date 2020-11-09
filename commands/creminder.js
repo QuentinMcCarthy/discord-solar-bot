@@ -43,7 +43,7 @@ module.exports = {
 
 				rtrn = 'creminderset';
 			} else {
-				message.channel.send(`\`\`\`Setting: ${this.name}\nUsage: ${client.settings.get(message.guild.id, 'prefix')}settings ${this.name} ${this.usage}\n${this.description}\`\`\``);
+				message.channel.send(`\`\`\`Command: ${this.name}\nUsage: ${client.settings.get(message.guild.id, 'prefix')}${this.name} ${this.usage}\n${this.description}\`\`\``);
 
 				rtrn = 'creminderfail';
 			}
@@ -62,7 +62,7 @@ module.exports = {
 				rtrn = 'creminderfail'
 			}
 		} else {
-			message.channel.send(`\`\`\`Setting: ${this.name}\nUsage: ${client.settings.get(message.guild.id, 'prefix')}settings ${this.name} ${this.usage}\n${this.description}\`\`\``);
+			message.channel.send(`\`\`\`Command: ${this.name}\nUsage: ${client.settings.get(message.guild.id, 'prefix')}${this.name} ${this.usage}\n${this.description}\`\`\``);
 
 			rtrn = 'creminderex';
 		}
