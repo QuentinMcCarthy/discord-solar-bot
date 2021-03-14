@@ -4,8 +4,8 @@ module.exports = {
 	cooldown: 5,
 	dev: true,
 	execute(client, logger, message, args) {
-		logger.log('debug', 'Bot restart command received, restarting...');
+		message.channel.send('Restarting...');
 
-		process.exit();
+		setTimeout(function () { process.exit() }, 1000);
 	},
 };
