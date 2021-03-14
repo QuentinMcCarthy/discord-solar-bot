@@ -6,6 +6,6 @@ module.exports = {
 	execute(client, logger, message, args) {
 		message.channel.send('Restarting...');
 
-		setTimeout(function () { process.exit() }, 1000);
+		setTimeout(function(){process.exit()}, 1000);
 	},
 };
