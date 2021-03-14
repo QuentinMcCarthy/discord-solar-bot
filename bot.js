@@ -245,9 +245,7 @@ client.on('message', message => {
 
 				logger.log('info', 'Returned mentionhelp to '+message.author.username+' ('+message.author.id+')');
 			}
-		}
-			
-		if (message.guild.me.hasPermission('MANAGE_MESSAGES')){
+		} else if (message.guild.me.hasPermission('MANAGE_MESSAGES')) {
 			if (client.settings.has(guildID, 'filter.list')) {
 				let toFilter = message.content.toLowerCase();
 
@@ -259,9 +257,7 @@ client.on('message', message => {
 					}
 				}
 			}
-		}
-
-		if (client.settings.has(guildID, 'keyphrases') && message.guild.me.hasPermission('MANAGE_ROLES')) {
+		} else if (client.settings.has(guildID, 'keyphrases') && message.guild.me.hasPermission('MANAGE_ROLES')) {
 			let toFilter = message.content;
 
 			for (var i = 0; i < client.settings.get(guildID, 'keyphrases').length; i++) {
