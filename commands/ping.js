@@ -7,7 +7,7 @@ module.exports = {
 		let delay = Date.now() - message.createdTimestamp;
 
 		if (delay < 0) {
-			message.channel.send('Pong recieved about '+delay+'ms in the future? Well that\'s odd.');
+			message.channel.send('Pong recieved about '+delay+'ms in the past? Well that\'s odd.');
 
 			logger.log('warn', 'Ping returned negative result');
 			logger.log('info', 'Returned pong to '+message.author.username+' ('+message.author.id+')');
