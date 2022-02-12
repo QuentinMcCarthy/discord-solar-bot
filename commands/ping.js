@@ -3,10 +3,18 @@ module.exports = {
 	description: 'Pings the bot, used to check if the bot is running properly and to check the command delay',
 	cooldown: 1,
 	execute(client, logger, message, args) {
-		message.channel.send('Pong recieved after '+(Date.now() - message.createdTimestamp)+'ms');
+		// Returned pong may be negative if sent from the system
+		let delay = Date.now() - message.createdTimestamp;
 
-		logger.log('info', 'Returned pong to '+message.author.username+' ('+message.author.id+')');
+		if (delay < 0) {
+			message.channel.send('Pong recieved about '+delay+'ms in the future? Well that\'s odd.');
 
-		// Returned pong may be negative due to system clock
+			logger.log('warn', 'Ping returned negative result');
+			logger.log('info', 'Returned pong to '+message.author.username+' ('+message.author.id+')');
+		} else {
+			message.channel.send('Pong recieved after '+(Date.now() - message.createdTimestamp)+'ms');
+
+			logger.log('info', 'Returned pong to '+message.author.username+' ('+message.author.id+')');
+		}
 	},
 };
