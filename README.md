@@ -1,2 +1,2 @@
 # To Do:
-- Adopt command(s). Remembering adopts (data saving). Further notes in Discord
+- Finish welcome.js, update version number to reflect updates done.
