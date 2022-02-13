@@ -4,6 +4,7 @@ const Enmap = require('enmap');
 const client = new Discord.Client();
 const winston = require('winston');
 const {token, id, perms, devid} = require('./auth.json');
+const { channel } = require('diagnostics_channel');
 
 // Logging
 const logger = winston.createLogger({
@@ -31,7 +32,12 @@ const defaultSettings = {
 		list: [],
 		response: 'Please don\'t use banned words'
 	},
-	keyphrases: []
+	keyphrases: [],
+	welcome: {
+		condition: '',
+		message: '',
+		channel: 0
+	}
 }
 
 // Dynamic command files
@@ -83,6 +89,35 @@ client.once('ready', () => {
 client.on('guildDelete', guild => {
 	// If the bot disconnects from a server, delete the settings
 	client.settings.delete(guild.id);
+});
+
+client.on('guildMemberAdd', member => {
+	// Join message
+	if (client.settings.get(guildID, 'welcome.channel' != 0) && client.settings.get(guildID, 'welcome.condition') == 'join') {
+		let sendin = client.settings.get(guildID, 'welcome.channel');
+		let msgarr = client.settings.get(guildID, 'welcome.message').split(/ +/);
+
+		// Add ping for user
+		let message = msgarr[0];
+
+		if (msgarr[0] != '[user]') {
+			for (var i = 1; i < msgarr.length; i++) {
+				if (msarr[i] == '[user]') {
+					message += ' <@' + member.id + '>';
+				} else {
+					message += ' ' + msgarr[i];
+				}
+			}
+		} else {
+			message = '<@' + member.id + '>';
+
+			for (var i = 1; i < msgarr.length; i++) {
+				message += ' ' + msgarr[i];
+			}
+		}
+
+		client.channels.cache.get(sendin).send(message);
+	}
 });
 
 client.on('message', message => {
@@ -282,6 +317,33 @@ client.on('message', message => {
 						message.reply('you\'ve had the ' + client.settings.get(guildID, 'keyphrases')[i].remove + ' role taken away');
 					} else {
 						logger.log('error', 'Attempted to alter roles of ' + message.author.username + ' (' + message.author.id + ') but failed');
+					}
+
+					// Welcome message
+					if (client.settings.get(guildID, 'welcome.channel' != 0) && toFilter == client.settings.get(guildID, 'welcome.condition')) {
+						let sendin = client.settings.get(guildID, 'welcome.channel');
+						let msgarr = client.settings.get(guildID, 'welcome.message').split(/ +/);
+
+						// Add ping for user
+						let message = msgarr[0];
+
+						if (msgarr[0] != '[user]') {
+							for (var i = 1; i < msgarr.length; i++) {
+								if (msarr[i] == '[user]') {
+									message += ' <@' + message.member.id + '>';
+								} else {
+									message += ' ' + msgarr[i];
+								}
+							}
+						} else {
+							message = '<@' + message.member.id + '>';
+
+							for (var i = 1; i < msgarr.length; i++) {
+								message += ' ' + msgarr[i];
+							}
+						}
+
+						client.channels.cache.get(sendin).send(message);
 					}
 				}
 			}
