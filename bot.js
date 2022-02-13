@@ -4,7 +4,6 @@ const Enmap = require('enmap');
 const client = new Discord.Client();
 const winston = require('winston');
 const {token, id, perms, devid} = require('./auth.json');
-// const { channel } = require('diagnostics_channel');
 
 // Logging
 const logger = winston.createLogger({
