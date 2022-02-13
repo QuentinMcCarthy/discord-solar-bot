@@ -8,47 +8,47 @@ module.exports = {
 
         if (args[0] != undefined && args[1] != undefined && args[2] != undefined) {
             let cond = args[0];
-            let message = args[1];
+            let msg = args[1];
 
             // Find the full string if there's a quotation
             if (cond.substring(0, 1) == '"' && cond.substring(cond.length - 1) != '"') {
                 for (var i = 1; i < args.length; i++) {
                     if (args[i].substring(args[i].length - 1) == '"') {
                         cond += ' ' + args[i];
-                        message = args[i + 1];
+                        msg = args[i + 1];
 
                         break;
                     } else {
                         cond += ' ' + args[i];
-                        message = args[i + 1];
+                        msg = args[i + 1];
                     }
                 }
             }
 
-            // Same with the message string
-            if (message.substring(0, 1) == '"' && message.substring(message.length - 1) != '"') {
+            // Same with the msg string
+            if (msg.substring(0, 1) == '"' && msg.substring(msg.length - 1) != '"') {
                 for (var i = 1; i < args.length; i++) {
                     if (args[i].substring(args[i].length - 1) == '"') {
-                        message += ' ' + args[i];
+                        msg += ' ' + args[i];
 
                         break;
                     } else {
-                        message += ' ' + args[i];
+                        msg += ' ' + args[i];
                     }
                 }
             }
 
             // Ensure everything is correct
-            if (cond != undefined && message != undefined) {
+            if (cond != undefined && msg != undefined) {
                 // Remove quotes
                 cond = cond.replace(/"/g, '');
-                message = message.replace(/"/g, '');
+                msg = msg.replace(/"/g, '');
 
                 client.settings.set(guildID, cond, 'welcome.condition');
-                client.settings.set(guildID, message, 'welcome.message');
+                client.settings.set(guildID, msg, 'welcome.message');
                 client.settings.set(guildID, message.channel.id, 'welcome.channel');
 
-                message.channel.send('Welcome message set with for <#' + message.channel.id + '>. Message: "' + message + '"');
+                message.channel.send('Welcome message set with for <#' + message.channel.id + '>. Message: "' + msg + '"');
 
                 rtrn = 'welcomeset';
             } else {
