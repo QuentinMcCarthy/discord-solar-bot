@@ -1,0 +1,7 @@
+{
+	"token": "InviteTokenHere",
+	"clientID": "ClientID",
+	"invite": "SelfInvite",
+	"devID": "DeveloperID",
+	"guildID": "DevGuildID"
+}

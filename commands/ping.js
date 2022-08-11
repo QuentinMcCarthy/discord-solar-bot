@@ -1,3 +1,15 @@
+const {SlashCommandBuilder, Message} = require('discord.js');
+
+module.exports = {
+	data: new SlashCommandBuilder()
+		.setName('ping')
+		.setDescription('Pings the bot, used to check if the bot is running properly and to check the command delay'),
+	async execute(interaction) {
+		await interaction.reply('Pong!');
+	},
+};
+
+/*
 module.exports = {
 	name: 'ping',
 	description: 'Pings the bot, used to check if the bot is running properly and to check the command delay',
@@ -18,3 +30,4 @@ module.exports = {
 		}
 	},
 };
+*/
