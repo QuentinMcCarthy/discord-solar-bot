@@ -1,72 +1,48 @@
+const { SlashCommandBuilder } = require('discord.js');
 const Enmap = require('enmap');
+const { loggers } = require('winston');
 
 module.exports = {
-	name: 'creminder',
-	description: 'Reminds users in a channel every set amount of messages of a specified message.',
-	usage: '<message/off> [delay]',
-	cooldown: 2,
-	admin: true,
-	execute(client, logger, message, args) {
-		const guildID = message.guild.id;
-		var rtrn = '';
+	data: new SlashCommandBuilder()
+		.setName('creminder')
+		.setDescription('Reminds users in a channel every set amount of messages of a specified message.')
+		.addSubcommand(subcommand =>
+			subcommand
+				.setName('on')
+				.setDescription('Turn creminder on')
+				.addIntegerOption(option =>
+					option.setName('count')
+						.setDescription('The amount of messages to wait for')
+						.setRequired(true))
+				.addStringOption(option =>
+					option.setName('message')
+						.setDescription('The message to send')
+						.setRequired(true)))
+		.addSubcommand(subcommand => 
+			subcommand
+				.setName('off')
+				.setDescription('Turn creminder off'))
+		.setDefaultMemberPermissions(PermissionFlagsBits.BanMembers),
+	async execute(interaction) {
+		if (interaction.options.getSubcommand() === 'on') {
+			if (interaction.options.getInteger('count') > 0) {
+				await interaction.reply({ content: `Will remind users in #${interaction.channel.id} every ${interaction.options.getInteger('count')} messages about ${interaction.options.getString('message')}`, ephemeral: true });
 
-		if (args[0] != undefined && args[1] != undefined && typeof args[1] != 'number') {
-			let crmessage = args[0];
-			let crdelay = args[1];
+				client.settings.set(guildID, interaction.options.getString('message'), `channels.${interaction.channel.id}.creminder.message`);
+				client.settings.set(guildID, interaction.options.getInteger('count'), `channels.${interaction.channel.id}.creminder.delay`);
+				client.settings.set(guildID, interaction.options.getInteger('count'), `channels.${interaction.channel.id}.creminder.current`);
 
-			// Find the full string if there's a quotation
-			if (crmessage.substring(0, 1) == '"' && crmessage.substring(crmessage.length-1) != '"') {
-				for (var i = 1; i < args.length; i++) {
-					if (args[i].substring(args[i].length-1) == '"') {
-						crmessage += ' '+args[i];
-						crdelay = args[i+1];
+				logger.log('info', `Creminder set in ${interaction.channel.id} by ${interaction.user.tag}`);
 
-						break;
-					} else {
-						crmessage += ' '+args[i];
-						crdelay = args[i+1];
-					}
-				}
-			}
-
-			// Ensure that everything is correct
-			if (parseInt(crdelay, 10) >= 1 && crdelay != undefined) {
-				// Remove quotes
-				crmessage = crmessage.replace(/"/g, '');
-				crdelay = crdelay.replace(/"/g, '');
-
-				client.settings.set(guildID, crmessage, 'channels.'+message.channel.id+'.creminder.message');
-				client.settings.set(guildID, crdelay, 'channels.'+message.channel.id+'.creminder.delay');
-				client.settings.set(guildID, crdelay, 'channels.'+message.channel.id+'.creminder.current');
-
-				message.channel.send('Will remind users in <#'+message.channel.id+'> every '+crdelay+' messages about "'+crmessage+'"');
-
-				rtrn = 'creminderset';
 			} else {
-				message.channel.send(`\`\`\`Command: ${this.name}\nUsage: ${client.settings.get(message.guild.id, 'prefix')}${this.name} ${this.usage}\n${this.description}\`\`\``);
+				await interaction.reply({ content: 'Message count was too short', ephemeral: true });
 
-				rtrn = 'creminderfail';
+				logger.log('info', `Creminder failed to be set by ${interaction.user.tag}`);
 			}
-		} else if (args[0] == 'off') {
-			if (client.settings.has(guildID, 'channels.' + message.channel.id + 'creminder') || client.settings.get(guildID, 'channels.' + message.channel.id + '.creminder.delay') != '0') {
-				client.settings.set(guildID, 'N/A', 'channels.'+message.channel.id+'.creminder.message');
-				client.settings.set(guildID, '0', 'channels.'+message.channel.id+'.creminder.delay');
-				client.settings.set(guildID, '0', 'channels.'+message.channel.id+'.creminder.current');
+		} else if (interaction.options.getSubcommand() === 'off') {
+			await interaction.reply({ content: 'Creminder off', ephemeral: true });
 
-				message.channel.send('Stopped reminding users in <#'+message.channel.id+'>');
-
-				rtrn = 'creminderoff';
-			} else {
-				message.channel.send('No reminders set for this channel');
-
-				rtrn = 'creminderfail'
-			}
-		} else {
-			message.channel.send(`\`\`\`Command: ${this.name}\nUsage: ${client.settings.get(message.guild.id, 'prefix')}${this.name} ${this.usage}\n${this.description}\`\`\``);
-
-			rtrn = 'creminderex';
+			loggers.log('info', `Creminder disabled in ${interaction.channel.id} by ${interaction.user.tag}`);
 		}
-
-		logger.log('info', 'Returned '+rtrn+' to '+message.author.username+' ('+message.author.id+')');
-	},
-};
+	}
+}

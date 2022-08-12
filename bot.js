@@ -40,46 +40,49 @@ const defaultSettings = {
     }
 }
 
-// Bot startup
-client.once('ready', () => {
-    let todayDate = new Date();
-    logger.log('info', todayDate.getDate() + '/' + todayDate.getMonth() + '/' + todayDate.getFullYear())
+// Event handling
+const eventsPath = path.join(__dirname, 'events');
+const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
 
-    client.settings.defer;
+for (const file of eventFiles) {
+    const filePath = path.join(eventsPath, file);
+    const event = require(filePath);
 
-    logger.log('info', client.settings.size + ' keys loaded');
+    if (event.once) {
+        client.once(event.name, (...args) => event.execute(...args));
+    } else {
+        client.on(event.name, (...args) => event.execute(...args));
+    }
+}
 
-    // Ensure each guild has a settings entry
-    // If a settings entry is not found,
-    // Create a new entry with default settings.
-    client.guilds.cache.forEach(guild => {
-        client.settings.ensure(guild.id, defaultSettings);
-
-        logger.log('info', 'Settings loaded for ' + guild.name);
-    });
-
-    logger.log('info', client.user.username + ' loaded and logged in');
-});
-
-client.on('guildDelete', guild => {
-    // If the bot disconnects from a server, delete the settings
-    client.settings.delete(guild.id);
-});
-
-// Commands
+// Command handling
 client.commands = new Collection();
 const commandsPath = path.join(__dirname, 'commands');
 const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
 
-//https://discordjs.guide/creating-your-bot/command-handling.html#reading-command-files
+for (const file of commandFiles) {
+    const filePath = path.join(commandsPath, file);
+    const command = require(filePath);
+
+    // Set a new item in the Collection
+    // With the key as the command name and the value as the exported module
+    client.commands.set(command.data.name, command);
+}
 
 // Command response
 client.on('interactionCreate', async interaction => {
     if (!interaction.isChatInputCommand()) return;
 
-    const { commandName } = interaction;
+    const command = client.commands.get(interaction.commandName);
 
-    // Command responses
-})
+    if (!command) return;
+
+    try {
+        await command.execute(interaction);
+    } catch (error) {
+        logger.log('error', error);
+        await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true});
+    }
+});
 
 client.login(token);

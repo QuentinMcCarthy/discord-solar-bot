@@ -1,33 +1,21 @@
-const {SlashCommandBuilder, Message} = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('ping')
 		.setDescription('Pings the bot, used to check if the bot is running properly and to check the command delay'),
 	async execute(interaction) {
-		await interaction.reply('Pong!');
-	},
-};
-
-/*
-module.exports = {
-	name: 'ping',
-	description: 'Pings the bot, used to check if the bot is running properly and to check the command delay',
-	cooldown: 1,
-	execute(client, logger, message, args) {
-		// Returned pong may be negative if sent from the system
-		let delay = Date.now() - message.createdTimestamp;
+		let delay = Math.abs(Date.now() - interaction.createdTimestamp);
 
 		if (delay < 0) {
-			message.channel.send('Pong recieved about '+delay+'ms in the past? Well that\'s odd.');
+			await interaction.reply({ content: `Pong recieved about ${delay}ms in the past? Well that's odd.`, ephemeral: true });
 
 			logger.log('warn', 'Ping returned negative result');
-			logger.log('info', 'Returned pong to '+message.author.username+' ('+message.author.id+')');
+			logger.log('info', `Returned pong to ${interaction.user.tag}`);
 		} else {
-			message.channel.send('Pong recieved after '+(Date.now() - message.createdTimestamp)+'ms');
+			await interaction.reply({ content: `Pong recieved after ${delay}ms`, ephemeral: true });
 
-			logger.log('info', 'Returned pong to '+message.author.username+' ('+message.author.id+')');
+			logger.log('info', `Returned pong to ${interaction.user.tag}`);
 		}
 	},
 };
-*/
