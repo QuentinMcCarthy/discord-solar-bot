@@ -24,22 +24,6 @@ client.settings = new Enmap({
     cloneLevel: 'deep'
 });
 
-// Default guild settings
-const defaultSettings = {
-    adminrole: 'Admin',
-    channels: {},
-    filter: {
-        list: [],
-        response: 'Please don\'t use banned words'
-    },
-    keyphrases: [],
-    welcome: {
-        condition: '',
-        message: '',
-        channel: 0
-    }
-}
-
 // Event handling
 const eventsPath = path.join(__dirname, 'events');
 const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
@@ -68,21 +52,5 @@ for (const file of commandFiles) {
     // With the key as the command name and the value as the exported module
     client.commands.set(command.data.name, command);
 }
-
-// Command response
-client.on('interactionCreate', async interaction => {
-    if (!interaction.isChatInputCommand()) return;
-
-    const command = client.commands.get(interaction.commandName);
-
-    if (!command) return;
-
-    try {
-        await command.execute(interaction);
-    } catch (error) {
-        logger.log('error', error);
-        await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true});
-    }
-});
 
 client.login(token);

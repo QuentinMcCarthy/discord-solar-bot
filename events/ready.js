@@ -1,7 +1,34 @@
+const winston = require('winston');
+
+// Logging
+const logger = winston.createLogger({
+    transports: [
+        new winston.transports.Console(),
+        new winston.transports.File({ filename: '../log.log' }),
+    ],
+    format: winston.format.printf(log => '[' + log.level.toUpperCase() + '] - ' + log.message),
+});
+
 module.exports = {
     name: 'ready',
     once: true,
     execute(client) {
+        // Default guild settings
+        const defaultSettings = {
+            adminrole: 'Admin',
+            channels: {},
+            filter: {
+                list: [],
+                response: 'Please don\'t use banned words'
+            },
+            keyphrases: [],
+            welcome: {
+                condition: '',
+                message: '',
+                channel: 0
+            }
+        }
+
         let todayDate = new Date();
         logger.log('info', todayDate.getDate() + '/' + todayDate.getMonth() + '/' + todayDate.getFullYear())
 
